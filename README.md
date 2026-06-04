@@ -6,6 +6,7 @@ A virtual environment is basically an isolated workspace for our project. It kee
 we also opened the project in VS Code which is the code editor we used throughout the entire project.
 
 **In step 2 ,**
+
 In Step 2, we installed the project dependencies. These are external libraries developed by other programmers that we used in our project instead of building every feature from scratch.
 
 We used the command: **pip install flask flask-sqlalchemy flask-login werkzeug**
