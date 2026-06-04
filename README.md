@@ -1,13 +1,14 @@
 **Intelligent Task Scheduler: A Smart Productivity and Task Management System**
 
 **In step 1 ,**
+
 We set up the project environment. First we created a project folder called task_scheduler using the mkdir command in the terminal. Then we created a virtual environment using python -m venv venv and activated it.
 A virtual environment is basically an isolated workspace for our project. It keeps all the libraries we install separate from other Python projects on the computer. This is important for teamwork — everyone on the team works with the same clean setup without libraries from other projects interfering.
 we also opened the project in VS Code which is the code editor we used throughout the entire project.
 
 **In step 2 ,**
 
-In Step 2, we installed the project dependencies. These are external libraries developed by other programmers that we used in our project instead of building every feature from scratch.
+we installed the project dependencies. These are external libraries developed by other programmers that we used in our project instead of building every feature from scratch.
 
 We used the command: **pip install flask flask-sqlalchemy flask-login werkzeug**
 pip is Python's package manager, which downloads and installs libraries from online repositories.
