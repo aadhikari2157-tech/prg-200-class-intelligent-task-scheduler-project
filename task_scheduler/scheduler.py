@@ -17,3 +17,4 @@ def score(task):
         hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
         if hours_left < 0:
             urgency = 50
+        
