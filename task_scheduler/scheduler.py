@@ -12,3 +12,8 @@ def score(task):
     p = priority_weight.get(task.priority, 10)
 
     urgency = 0
+
+    if task.due_date:
+        hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
+        if hours_left < 0:
+            urgency = 50
