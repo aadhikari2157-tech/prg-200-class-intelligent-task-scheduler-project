@@ -25,3 +25,12 @@ def score(task):
             urgency = 15
         else:
             urgency = 5
+
+
+    duration = calculate_duration_minutes(task.start_time, task.end_time)
+    if duration <= 30:
+        duration_bonus = 5
+    elif duration <= 60:
+        duration_bonus = 3
+    else:
+        duration_bonus = 0
