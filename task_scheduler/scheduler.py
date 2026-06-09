@@ -17,4 +17,23 @@ def score(task):
         hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
         if hours_left < 0:
             urgency = 50
-        
+        elif hours_left < 24:
+            urgency = 40
+        elif hours_left < 48:
+            urgency = 30
+        elif hours_left < 168:
+            urgency = 15
+        else:
+            urgency = 5
+
+
+    duration = calculate_duration_minutes(task.start_time, task.end_time)
+    if duration <= 30:
+        duration_bonus = 5
+    elif duration <= 60:
+        duration_bonus = 3
+    else:
+        duration_bonus = 0
+
+    days_old = (datetime.utcnow() - task.created_at).days
+    age_bonus = min(days_old, 10)
