@@ -21,3 +21,9 @@ def load_user(user_id):
 app.register_blueprint(main)
 app.register_blueprint(auth)
 
+if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
+        print("Database tables created.")
+    app.run(debug=True)
+
