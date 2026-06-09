@@ -17,4 +17,11 @@ def score(task):
         hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
         if hours_left < 0:
             urgency = 50
-        
+        elif hours_left < 24:
+            urgency = 40
+        elif hours_left < 48:
+            urgency = 30
+        elif hours_left < 168:
+            urgency = 15
+        else:
+            urgency = 5
