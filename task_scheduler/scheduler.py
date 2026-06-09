@@ -34,3 +34,6 @@ def score(task):
         duration_bonus = 3
     else:
         duration_bonus = 0
+
+    days_old = (datetime.utcnow() - task.created_at).days
+    age_bonus = min(days_old, 10)
