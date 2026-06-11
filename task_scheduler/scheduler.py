@@ -75,3 +75,20 @@ def analyze_workload(tasks):
             duration = calculate_duration_minutes(task.start_time, task.end_time)
             day_load[date_str] += duration
 
+    result = {}
+    for date_str, total_mins in day_load.items():
+        if total_mins > 480:
+            status = 'danger'
+        elif total_mins > 300:
+            status = 'warning'
+        else:
+            status = 'ok'
+        result[date_str] = {
+            'total_minutes': total_mins,
+            'total_hours': round(total_mins / 60, 1),
+            'status': status
+        }
+    return result
+
+
+
