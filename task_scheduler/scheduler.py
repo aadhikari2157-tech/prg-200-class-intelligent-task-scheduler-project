@@ -50,3 +50,9 @@ def prioritize_tasks(tasks):
     ))
     return pending
 
+
+def get_todays_tasks(tasks):
+    today = datetime.utcnow().date()
+    pending = [t for t in tasks if t.status != 'Done']
+    return [t for t in pending if t.due_date and t.due_date.date() == today]
+
