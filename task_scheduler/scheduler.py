@@ -60,3 +60,7 @@ def get_overdue_tasks(tasks):
     now = datetime.utcnow()
     return [t for t in tasks if t.status != 'Done' and t.due_date and t.due_date < now]
 
+def get_next_task(tasks):
+    prioritized = prioritize_tasks(tasks)
+    return prioritized[0] if prioritized else None
+
