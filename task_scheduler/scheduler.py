@@ -64,3 +64,14 @@ def get_next_task(tasks):
     prioritized = prioritize_tasks(tasks)
     return prioritized[0] if prioritized else None
 
+def analyze_workload(tasks):
+    from collections import defaultdict
+    day_load = defaultdict(int)
+    for task in tasks:
+        if task.status == 'Done':
+            continue
+        if task.due_date:
+            date_str = task.due_date.strftime('%Y-%m-%d')
+            duration = calculate_duration_minutes(task.start_time, task.end_time)
+            day_load[date_str] += duration
+
