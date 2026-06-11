@@ -90,5 +90,10 @@ def analyze_workload(tasks):
         }
     return result
 
+def get_productivity_stats(tasks):
+    done = [t for t in tasks if t.status == 'Done']
+    total = len(tasks)
+    completed = len(done)
+    completion_rate = round((completed / total * 100) if total > 0 else 0, 1)
 
 
