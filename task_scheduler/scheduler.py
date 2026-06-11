@@ -127,6 +127,14 @@ def get_productivity_stats(tasks):
 
     return {
     
+     'completion_rate': completion_rate,
+        'avg_completion_days': avg_completion_days,
+        'priority_done': priority_done,
+        'priority_total': priority_total,
+        'on_time_rate': on_time_rate,
+        'total': total,
+        'completed': completed,
+    }
         
 
 
