@@ -96,4 +96,14 @@ def get_productivity_stats(tasks):
     completed = len(done)
     completion_rate = round((completed / total * 100) if total > 0 else 0, 1)
 
+    ompletion_times = []
+    for t in done:
+        if t.completed_at and t.created_at:
+            days = (t.completed_at - t.created_at).days
+            completion_times.append(days)
+    avg_completion_days = round(
+        sum(completion_times) / len(completion_times), 1
+    ) if completion_times else 0
+
+
 
