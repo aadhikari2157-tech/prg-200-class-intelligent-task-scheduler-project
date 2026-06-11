@@ -56,3 +56,7 @@ def get_todays_tasks(tasks):
     pending = [t for t in tasks if t.status != 'Done']
     return [t for t in pending if t.due_date and t.due_date.date() == today]
 
+def get_overdue_tasks(tasks):
+    now = datetime.utcnow()
+    return [t for t in tasks if t.status != 'Done' and t.due_date and t.due_date < now]
+
