@@ -39,3 +39,14 @@ def score(task):
     age_bonus = min(days_old, 10)
 
     return p + urgency + duration_bonus + age_bonus
+
+def prioritize_tasks(tasks):
+    pending = [t for t in tasks if t.status != 'Done']
+    pending.sort(key=lambda t: (
+        -score(t),
+        t.due_date or datetime.max,
+        calculate_duration_minutes(t.start_time, t.end_time),
+        t.created_at
+    ))
+    return pending
+
