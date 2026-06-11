@@ -105,5 +105,13 @@ def get_productivity_stats(tasks):
         sum(completion_times) / len(completion_times), 1
     ) if completion_times else 0
 
+    priority_done = {'High': 0, 'Medium': 0, 'Low': 0}
+    priority_total = {'High': 0, 'Medium': 0, 'Low': 0}
+    for t in tasks:
+        priority_total[t.priority] = priority_total.get(t.priority, 0) + 1
+        if t.status == 'Done':
+            priority_done[t.priority] = priority_done.get(t.priority, 0) + 1
+        
+
 
 
