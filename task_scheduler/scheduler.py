@@ -111,6 +111,22 @@ def get_productivity_stats(tasks):
         priority_total[t.priority] = priority_total.get(t.priority, 0) + 1
         if t.status == 'Done':
             priority_done[t.priority] = priority_done.get(t.priority, 0) + 1
+    
+
+    on_time = 0
+    late = 0
+    for t in done:
+        if t.due_date and t.completed_at:
+            if t.completed_at <= t.due_date:
+                on_time += 1
+            else:
+                late += 1
+    on_time_rate = round(
+        (on_time / (on_time + late) * 100) if (on_time + late) > 0 else 0, 1
+    )
+
+    return {
+    
         
 
 
