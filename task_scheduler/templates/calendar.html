@@ -1,54 +1,40 @@
 {% extends "base.html" %}
-{% block title %}Calendar — FlowTask{% endblock %}
-{% block page_title %}Calendar{% endblock %}
+{% block page_title %}📅 Calendar{% endblock %}
 
 {% block content %}
-
-<!-- KPI Row -->
-<div class="kpi-row mb-4">
-  <div class="kpi-card">
-    <div class="kpi-icon bg-primary-soft"><i class="bi bi-list-task"></i></div>
-    <div class="kpi-data"><div class="kpi-value">{{ total }}</div><div class="kpi-label">Total Tasks</div></div>
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ total }}</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
-    <div class="kpi-data"><div class="kpi-value">{{ completed }}</div><div class="kpi-label">Completed</div></div>
+  <div class="stat-card">
+    <div class="stat-label">Completed</div>
+    <div class="stat-value">{{ completed }}</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-warning-soft"><i class="bi bi-arrow-repeat"></i></div>
-    <div class="kpi-data"><div class="kpi-value">{{ in_progress }}</div><div class="kpi-label">In Progress</div></div>
+  <div class="stat-card">
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ in_progress }}</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-danger-soft"><i class="bi bi-exclamation-circle-fill"></i></div>
-    <div class="kpi-data"><div class="kpi-value text-danger">{{ overdue }}</div><div class="kpi-label">Overdue</div></div>
+  <div class="stat-card">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value overdue">{{ overdue }}</div>
   </div>
 </div>
 
-<div class="cal-layout">
-  <!-- Calendar grid -->
-  <div class="panel cal-panel">
+<div class="two-col">
+  <div class="card">
     <div id="calendar-grid"></div>
   </div>
-  <!-- Day detail -->
-  <div class="panel day-detail-panel" id="day-detail">
-    <div class="panel-head">
-      <h6 class="panel-title" id="selected-date-label">
-        <i class="bi bi-calendar-day me-2"></i>Select a day
-      </h6>
-    </div>
-    <div id="day-tasks">
-      <p class="empty-placeholder">Click a date to see its tasks.</p>
-    </div>
+  <div class="card" id="day-detail">
+    <h2 id="selected-date-label">Select a date</h2>
+    <div id="day-tasks">Click a date to see tasks.</div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script>
 const allTasks = {{ tasks | tojson | safe }};
-
-// Build date → tasks map
 const taskMap = {};
 allTasks.forEach(t => {
   if (t.due_date) {
@@ -57,96 +43,68 @@ allTasks.forEach(t => {
   }
 });
 
-const priorityColors = { High: '#ef4444', Medium: '#f59e0b', Low: '#22c55e', Done: '#94a3b8' };
-const catEmoji = {
-  Academic:'🎓', Work:'💼', Personal:'🏠', Health:'💪',
-  Finance:'💰', Meeting:'🤝', Other:'📌'
-};
-
-let currentYear  = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
-
 function renderCalendar(year, month) {
-  const monthNames = ['January','February','March','April','May','June',
-                      'July','August','September','October','November','December'];
-  const dayNames   = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  const firstDay   = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
   const offset = firstDay === 0 ? 6 : firstDay - 1;
-  const today  = new Date();
+  const today = new Date();
 
-  let html = `
-    <div class="cal-nav">
-      <button class="cal-nav-btn" onclick="changeMonth(-1)"><i class="bi bi-chevron-left"></i></button>
-      <span class="cal-month-label">${monthNames[month]} ${year}</span>
-      <button class="cal-nav-btn" onclick="changeMonth(1)"><i class="bi bi-chevron-right"></i></button>
-    </div>
-    <div class="cal-grid-head">
-      ${dayNames.map(d => `<div class="cal-day-name">${d}</div>`).join('')}
-    </div>
-    <div class="cal-grid-body">`;
+  let html = `<div class="cal-header">
+    <button onclick="changeMonth(-1)">&#8249;</button>
+    <span>${months[month]} ${year}</span>
+    <button onclick="changeMonth(1)">&#8250;</button>
+  </div>
+  <div class="cal-grid">`;
 
-  for (let i = 0; i < offset; i++) html += `<div class="cal-cell cal-empty"></div>`;
+  days.forEach(d => { html += `<div class="cal-day-name">${d}</div>`; });
+  for (let i = 0; i < offset; i++) html += `<div class="cal-cell empty"></div>`;
 
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const isToday = d === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-    const tasks   = taskMap[dateStr] || [];
-    const hasTasks = tasks.length > 0;
-    const hasHighRisk = tasks.some(t => t.risk === 'High');
-
-    let dots = tasks.slice(0,3).map(t =>
-      `<span class="cal-dot" style="background:${priorityColors[t.status==='Done'?'Done':t.priority]||'#94a3b8'}"></span>`
-    ).join('');
-
-    html += `
-      <div class="cal-cell${isToday?' cal-today':''}${hasTasks?' cal-has-tasks':''}${hasHighRisk?' cal-high-risk':''}"
-           onclick="showDay('${dateStr}', ${d})">
-        <span class="cal-day-num">${d}</span>
-        <div class="cal-dots">${dots}</div>
-      </div>`;
+    const isToday = (d === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+    const hasTasks = taskMap[dateStr];
+    let dots = '';
+    if (hasTasks) {
+      const colors = {'High':'#f87171','Medium':'#fb923c','Low':'#4ade80'};
+      hasTasks.slice(0,3).forEach(t => {
+        dots += `<span class="dot" style="background:${colors[t.priority]||'#94a3b8'}"></span>`;
+      });
+    }
+    html += `<div class="cal-cell${isToday?' today':''}" onclick="showDay('${dateStr}', ${d})">${d}${dots}</div>`;
   }
   html += `</div>`;
   document.getElementById('calendar-grid').innerHTML = html;
 }
 
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+
 function changeMonth(delta) {
   currentMonth += delta;
   if (currentMonth > 11) { currentMonth = 0; currentYear++; }
-  if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
   renderCalendar(currentYear, currentMonth);
 }
 
 function showDay(dateStr, day) {
-  const label = document.getElementById('selected-date-label');
-  const container = document.getElementById('day-tasks');
+  document.getElementById('selected-date-label').textContent = dateStr;
   const tasks = taskMap[dateStr] || [];
-
-  // Format date nicely
-  const d = new Date(dateStr + 'T00:00:00');
-  label.innerHTML = `<i class="bi bi-calendar-day me-2"></i>${d.toDateString()}`;
-
   if (!tasks.length) {
-    container.innerHTML = '<p class="empty-placeholder">No tasks on this day.</p>';
+    document.getElementById('day-tasks').innerHTML = '<p class="empty-state">No tasks on this day.</p>';
     return;
   }
-
-  container.innerHTML = tasks.map(t => `
-    <div class="task-row task-${t.status.toLowerCase().replace(' ','-')}">
-      <div class="task-body">
-        <div class="task-title-row">
-          <span class="task-name">${catEmoji[t.category]||'📌'} ${t.title}</span>
-          <span class="risk-dot risk-${(t.risk||'low').toLowerCase()}"></span>
-        </div>
-        <div class="task-meta-row">
-          <span class="cat-chip">${t.category||'Other'}</span>
-          ${t.start_time ? `<span class="meta-chip"><i class="bi bi-clock me-1"></i>${t.start_time}–${t.end_time}</span>` : ''}
-          <span class="priority-pill priority-${t.priority.toLowerCase()}">${t.priority}</span>
+  const colors = {'High':'high','Medium':'medium','Low':'low'};
+  document.getElementById('day-tasks').innerHTML = tasks.map(t => `
+    <div class="task-item">
+      <div class="task-info">
+        <div class="task-title">${t.title}</div>
+        <div class="task-meta">
+          ${t.start_time ? '⏰ '+t.start_time+'–'+t.end_time : ''} 📅 Due today
         </div>
       </div>
-      <div class="task-actions">
-        <button class="btn-done-xs" onclick="markDone(${t.id}, this)"><i class="bi bi-check-lg"></i></button>
-      </div>
+      <span class="badge badge-${colors[t.priority]||'medium'}">${t.priority}</span>
     </div>`).join('');
 }
 

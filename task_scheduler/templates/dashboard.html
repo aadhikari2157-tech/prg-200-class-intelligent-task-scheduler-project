@@ -1,263 +1,133 @@
 {% extends "base.html" %}
-{% block title %}Dashboard — FlowTask AI{% endblock %}
-{% block page_title %}Dashboard{% endblock %}
+{% block page_title %}🏠 Dashboard{% endblock %}
 
 {% block content %}
 
-<!-- ── AI RECOMMENDATION BANNER ── -->
 {% if next_task %}
-<div class="ai-banner">
-  <div class="ai-banner-left">
-    <div class="ai-banner-label">
-      <i class="bi bi-stars me-1"></i>AI Recommends
-    </div>
-    <div class="ai-banner-title">{{ next_task.title }}</div>
-    <div class="ai-banner-meta">
-      <span class="risk-tag risk-{{ next_task.risk_level.lower() }}">
-        <i class="bi bi-shield-fill me-1"></i>{{ next_task.risk_level }} Risk
-      </span>
+<div class="smart-banner">
+  <div class="smart-banner-left">
+    <span class="smart-label">⚡ Do this next</span>
+    <span class="smart-title">{{ next_task.title }}</span>
+    <span class="smart-meta">
+      {% if next_task.start_time %}⏰ {{ next_task.start_time }}–{{ next_task.end_time }}  {% endif %}
       {% if next_task.due_date %}
         {% set hours_left = ((next_task.due_date - now).total_seconds() / 3600)|int %}
         {% if hours_left < 0 %}
-          <span class="urgency-tag danger"><i class="bi bi-exclamation-triangle-fill me-1"></i>Overdue</span>
+          <span class="urgent-tag">⚠️ Overdue</span>
         {% elif hours_left < 24 %}
-          <span class="urgency-tag warning"><i class="bi bi-fire me-1"></i>Due in {{ hours_left }}h</span>
+          <span class="urgent-tag">🔥 Due in {{ hours_left }}h</span>
         {% else %}
-          <span class="urgency-tag info"><i class="bi bi-calendar me-1"></i>Due {{ next_task.due_date.strftime('%b %d') }}</span>
+          📅 Due {{ next_task.due_date.strftime('%b %d') }}
         {% endif %}
       {% endif %}
-      <span class="cat-tag">{{ next_task.category }}</span>
-    </div>
-    <div class="ai-reasoning">💡 {{ next_reasoning }}</div>
+    </span>
   </div>
-  <div class="ai-banner-right">
-    <span class="priority-pill priority-{{ next_task.priority.lower() }}">{{ next_task.priority }}</span>
-    <button class="btn btn-done-sm" onclick="markDone({{ next_task.id }}, this)">
-      <i class="bi bi-check-lg me-1"></i>Mark Done
-    </button>
+  <div class="smart-banner-right">
+    <span class="badge badge-{{ next_task.priority.lower() }}">{{ next_task.priority }}</span>
+    <button class="btn-primary small" onclick="markDone({{ next_task.id }}, this)">Mark done</button>
   </div>
 </div>
 {% endif %}
 
-<!-- ── OVERDUE ALERT ── -->
 {% if overdue_tasks %}
-<div class="overdue-alert">
-  <i class="bi bi-exclamation-triangle-fill me-2"></i>
-  <strong>{{ overdue_tasks|length }} overdue task{{ 's' if overdue_tasks|length > 1 }}:</strong>
-  {% for t in overdue_tasks[:3] %}<span class="overdue-task-name">{{ t.title }}</span>{% if not loop.last %}, {% endif %}{% endfor %}
-  {% if overdue_tasks|length > 3 %} + {{ overdue_tasks|length - 3 }} more{% endif %}
-</div>
-{% endif %}
-
-<!-- ── WORKLOAD TIPS ── -->
-{% if workload_tips %}
-<div class="workload-tips">
-  {% for tip in workload_tips[:2] %}
-  <div class="workload-tip-item">{{ tip }}</div>
+<div class="overdue-banner">
+  ⚠️ You have {{ overdue_tasks|length }} overdue task{{ 's' if overdue_tasks|length > 1 else '' }}:
+  {% for t in overdue_tasks[:3] %}
+    <strong>{{ t.title }}</strong>{% if not loop.last %}, {% endif %}
   {% endfor %}
+  {% if overdue_tasks|length > 3 %} and {{ overdue_tasks|length - 3 }} more{% endif %}
 </div>
 {% endif %}
 
-<!-- ── KPI STATS ── -->
-<div class="kpi-row">
-  <div class="kpi-card">
-    <div class="kpi-icon bg-primary-soft"><i class="bi bi-list-task"></i></div>
-    <div class="kpi-data">
-      <div class="kpi-value">{{ total }}</div>
-      <div class="kpi-label">Total Tasks</div>
-    </div>
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ total }}</div>
+    <div class="stat-sub">+5 from last week</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-success-soft"><i class="bi bi-check-circle-fill"></i></div>
-    <div class="kpi-data">
-      <div class="kpi-value">{{ completed }}</div>
-      <div class="kpi-label">Completed</div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Completed</div>
+    <div class="stat-value">{{ completed }}</div>
+    <div class="stat-sub">+0 from last week</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-warning-soft"><i class="bi bi-arrow-repeat"></i></div>
-    <div class="kpi-data">
-      <div class="kpi-value">{{ in_progress }}</div>
-      <div class="kpi-label">In Progress</div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ in_progress }}</div>
+    <div class="stat-sub">+1 from last week</div>
   </div>
-  <div class="kpi-card">
-    <div class="kpi-icon bg-danger-soft"><i class="bi bi-exclamation-circle-fill"></i></div>
-    <div class="kpi-data">
-      <div class="kpi-value text-danger">{{ overdue }}</div>
-      <div class="kpi-label">Overdue</div>
-    </div>
-  </div>
-  <div class="kpi-card">
-    {% set rate = ((completed / total * 100)|int) if total > 0 else 0 %}
-    <div class="kpi-icon bg-info-soft"><i class="bi bi-graph-up-arrow"></i></div>
-    <div class="kpi-data">
-      <div class="kpi-value">{{ rate }}%</div>
-      <div class="kpi-label">Completion Rate</div>
-    </div>
+  <div class="stat-card">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value overdue">{{ overdue }}</div>
+    <div class="stat-sub overdue">{{ overdue }} need attention</div>
   </div>
 </div>
 
-<!-- ── MAIN GRID ── -->
-<div class="dashboard-grid">
-
-  <!-- Smart Task List -->
-  <div class="panel">
-    <div class="panel-head">
-      <h6 class="panel-title"><i class="bi bi-lightning-fill me-2 text-accent"></i>Smart Priority Queue</h6>
-      <button class="btn btn-sm btn-outline-custom" onclick="openAddModal()">
-        <i class="bi bi-plus-lg me-1"></i>Add
-      </button>
+<div class="two-col">
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Task List</h2>
+      <button class="btn-primary small" onclick="openAddModal()">+ Add Task</button>
     </div>
 
-    <!-- Filter tabs -->
-    <div class="filter-tabs">
-      <button class="ftab active" onclick="filterTasks('all', this)">All</button>
-      <button class="ftab" onclick="filterTasks('pending', this)">Pending</button>
-      <button class="ftab" onclick="filterTasks('in-progress', this)">In Progress</button>
-      <button class="ftab" onclick="filterTasks('high', this)">🔴 High</button>
-    </div>
-
-    <!-- Today section -->
     {% if today_tasks %}
-    <div class="task-section-label">Today</div>
+    <div class="section-label">Today's Tasks</div>
     {% for task in today_tasks %}
-    <div class="task-row task-{{ task.status.lower().replace(' ', '-') }}"
-         id="task-{{ task.id }}"
-         data-status="{{ task.status.lower().replace(' ', '-') }}"
-         data-priority="{{ task.priority.lower() }}">
-      <label class="task-check-wrap">
-        <input type="checkbox" class="task-check" onchange="markDone({{ task.id }}, this)" />
-        <span class="custom-check"></span>
-      </label>
-      <div class="task-body">
-        <div class="task-title-row">
-          <span class="task-name">{{ task.title }}</span>
-          <span class="risk-dot risk-{{ task.risk_level.lower() }}" title="{{ task.risk_level }} Risk — {{ task.risk_reason }}"></span>
-        </div>
-        <div class="task-meta-row">
-          <span class="cat-chip">{{ task.category }}</span>
-          {% if task.estimated_hours %}<span class="meta-chip"><i class="bi bi-clock me-1"></i>{{ task.estimated_hours }}h</span>{% endif %}
-          <span class="meta-chip due-today"><i class="bi bi-calendar-fill me-1"></i>Today</span>
+    <div class="task-item" id="task-{{ task.id }}">
+      <input type="checkbox" onchange="markDone({{ task.id }}, this)"/>
+      <div class="task-info">
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-meta">
+          {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+          📅 Due today
         </div>
       </div>
-      <div class="task-actions">
-        <span class="priority-dot priority-{{ task.priority.lower() }}"></span>
-        <span class="score-chip" title="AI Priority Score">{{ task.priority_score|int }}</span>
-        <button class="btn-icon-del" onclick="deleteTask({{ task.id }})" title="Delete"><i class="bi bi-trash3"></i></button>
-      </div>
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
+      <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
     </div>
     {% endfor %}
     {% endif %}
 
-    <!-- Smart order -->
-    <div class="task-section-label">Upcoming (AI Sorted)</div>
-    {% set shown = [] %}
+    <div class="section-label">Smart Order</div>
     {% for task in smart_order %}
       {% if task not in today_tasks %}
-        {% if shown.append(1) %}{% endif %}
-    <div class="task-row task-{{ task.status.lower().replace(' ', '-') }}"
-         id="task-{{ task.id }}"
-         data-status="{{ task.status.lower().replace(' ', '-') }}"
-         data-priority="{{ task.priority.lower() }}">
-      <label class="task-check-wrap">
-        <input type="checkbox" class="task-check" onchange="markDone({{ task.id }}, this)" />
-        <span class="custom-check"></span>
-      </label>
-      <div class="task-body">
-        <div class="task-title-row">
-          <span class="task-name">{{ task.title }}</span>
-          <span class="risk-dot risk-{{ task.risk_level.lower() }}" title="{{ task.risk_reason }}"></span>
+      <div class="task-item" id="task-{{ task.id }}">
+        <input type="checkbox" onchange="markDone({{ task.id }}, this)"/>
+        <div class="task-info">
+          <div class="task-title">{{ task.title }}</div>
+          <div class="task-meta">
+            {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+            {% if task.due_date %}📅 Due {{ task.due_date.strftime('%b %d') }}{% endif %}
+          </div>
         </div>
-        <div class="task-meta-row">
-          <span class="cat-chip">{{ task.category }}</span>
-          {% if task.estimated_hours %}<span class="meta-chip"><i class="bi bi-clock me-1"></i>{{ task.estimated_hours }}h</span>{% endif %}
-          {% if task.due_date %}<span class="meta-chip"><i class="bi bi-calendar me-1"></i>{{ task.due_date.strftime('%b %d') }}</span>{% endif %}
-        </div>
+        <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
+        <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
       </div>
-      <div class="task-actions">
-        <span class="priority-dot priority-{{ task.priority.lower() }}"></span>
-        <span class="score-chip" title="AI Priority Score">{{ task.priority_score|int }}</span>
-        <button class="btn-icon-del" onclick="deleteTask({{ task.id }})" title="Delete"><i class="bi bi-trash3"></i></button>
-      </div>
-    </div>
       {% endif %}
     {% else %}
-    <p class="empty-placeholder"><i class="bi bi-trophy me-2"></i>All tasks done!</p>
+    <p class="empty-state">No pending tasks 🎉</p>
     {% endfor %}
   </div>
 
-  <!-- Right column -->
-  <div class="d-flex flex-column gap-3">
-
-    <!-- Workload mini chart -->
-    <div class="panel">
-      <div class="panel-head">
-        <h6 class="panel-title"><i class="bi bi-bar-chart-fill me-2 text-accent"></i>Workload</h6>
-        <a href="{{ url_for('main.reports') }}" class="btn-link-sm">View all →</a>
-      </div>
-      {% if workload %}
-      <div class="workload-list">
-        {% for date, info in workload.items()|sort %}
-        <div class="wl-row">
-          <span class="wl-date">{{ date }}</span>
-          <div class="wl-bar-wrap">
-            <div class="wl-bar wl-{{ info.status }}" style="width: {{ [info.total_hours * 10, 100]|min }}%"></div>
-          </div>
-          <span class="wl-hours">{{ info.total_hours }}h</span>
-          <span class="wl-badge wl-badge-{{ info.status }}">{{ info.status }}</span>
-        </div>
-        {% endfor %}
-      </div>
-      {% else %}
-      <p class="empty-placeholder">No scheduled tasks yet.</p>
-      {% endif %}
+  <div class="card">
+    <div class="card-header">
+      <h2>✅ Done Tasks</h2>
     </div>
-
-    <!-- Completed tasks -->
-    <div class="panel">
-      <div class="panel-head">
-        <h6 class="panel-title"><i class="bi bi-check-circle-fill me-2 text-success-soft"></i>Completed</h6>
-      </div>
-      {% for task in done_tasks[:5] %}
-      <div class="task-row task-done">
-        <div class="done-check-icon"><i class="bi bi-check-lg"></i></div>
-        <div class="task-body">
-          <div class="task-name done-name">{{ task.title }}</div>
-          <div class="task-meta-row">
-            <span class="cat-chip">{{ task.category }}</span>
-            {% if task.completed_at %}
-            <span class="meta-chip"><i class="bi bi-check2 me-1"></i>{{ task.completed_at.strftime('%b %d') }}</span>
-            {% endif %}
-          </div>
+    {% for task in done_tasks[:6] %}
+    <div class="task-item done">
+      <span class="done-check">✅</span>
+      <div class="task-info">
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-meta">
+          {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+          {% if task.completed_at %}📅 Done on {{ task.completed_at.strftime('%m/%d/%Y') }}{% endif %}
         </div>
-        <span class="priority-dot priority-{{ task.priority.lower() }}"></span>
       </div>
-      {% else %}
-      <p class="empty-placeholder">No completed tasks yet.</p>
-      {% endfor %}
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
     </div>
-
+    {% else %}
+    <p class="empty-state">No completed tasks yet</p>
+    {% endfor %}
   </div>
 </div>
 
-{% endblock %}
-
-{% block scripts %}
-<script>
-// Filter tabs
-function filterTasks(type, btn) {
-  document.querySelectorAll('.ftab').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.querySelectorAll('.task-row').forEach(row => {
-    const status   = row.dataset.status   || '';
-    const priority = row.dataset.priority || '';
-    let show = true;
-    if (type === 'pending')     show = status === 'pending';
-    if (type === 'in-progress') show = status === 'in-progress';
-    if (type === 'high')        show = priority === 'high';
-    row.style.display = show ? '' : 'none';
-  });
-}
-</script>
 {% endblock %}
