@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}AI Schedule — FlowTask{% endblock %}
+{% block page_title %}AI Schedule{% endblock %}
+
+{% block content %}
+
+<div class="schedule-header mb-4">
+  <div>
+    <h4 class="fw-700 mb-1">Today's Intelligent Schedule</h4>
+    <p class="text-muted-sm">{{ now.strftime('%A, %B %d, %Y') }} · Auto-generated based on your tasks and deadlines</p>
+  </div>
+  <button class="btn btn-primary-custom" onclick="location.reload()">
+    <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
+  </button>
+</div>
+
+{% if schedule %}
+<div class="schedule-wrapper">
+  <div class="schedule-timeline">
+
+    {% for slot in schedule %}
+    <div class="schedule-slot {% if slot.is_break %}slot-break{% else %}slot-task slot-priority-{{ slot.priority.lower() }}{% endif %}">
+      <div class="slot-time">
+        <span class="slot-start">{{ slot.time_start }}</span>
+        <span class="slot-dash">–</span>
+        <span class="slot-end">{{ slot.time_end }}</span>
+      </div>
+      <div class="slot-bar"></div>
+      <div class="slot-content">
+        {% if slot.is_break %}
+          <div class="slot-title slot-break-title">{{ slot.task_title }}</div>
+          <div class="slot-sub">Rest & recharge</div>
+        {% else %}
+          <div class="slot-title">{{ slot.task_title }}</div>
+          <div class="slot-chips">
+            <span class="cat-chip">{{ slot.category }}</span>
+            <span class="priority-pill priority-{{ slot.priority.lower() }}">{{ slot.priority }}</span>
+          </div>
+        {% endif %}
+      </div>
+      {% if not slot.is_break %}
+      <div class="slot-actions">
+        <button class="btn-done-xs" onclick="markDone({{ slot.task_id }}, this)">
+          <i class="bi bi-check-lg"></i>
+        </button>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  </div>
+
+  <!-- Summary sidebar -->
+  <div class="schedule-summary">
+    <div class="panel">
+      <div class="panel-head">
+        <h6 class="panel-title"><i class="bi bi-info-circle me-2"></i>Summary</h6>
+      </div>
+      {% set task_slots = schedule | selectattr('is_break', 'equalto', false) | list %}
+      {% set break_slots = schedule | selectattr('is_break', 'equalto', true) | list %}
+      <div class="summary-stat">
+        <span class="summary-label">Tasks scheduled</span>
+        <span class="summary-val">{{ task_slots|length }}</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Breaks</span>
+        <span class="summary-val">{{ break_slots|length }}</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Day starts</span>
+        <span class="summary-val">{{ schedule[0].time_start if schedule else '—' }}</span>
+      </div>
+      <div class="summary-stat">
+        <span class="summary-label">Day ends</span>
+        <span class="summary-val">{{ schedule[-1].time_end if schedule else '—' }}</span>
+      </div>
+
+      <div class="ai-tip mt-3">
+        <i class="bi bi-lightbulb-fill me-1"></i>
+        Tasks are sorted by AI priority score. Complete high-risk tasks early when your energy is highest.
+      </div>
+    </div>
+  </div>
+</div>
+
+{% else %}
+<div class="empty-state-big">
+  <i class="bi bi-calendar-x fs-1 text-muted mb-3 d-block"></i>
+  <h5>No tasks to schedule</h5>
+  <p class="text-muted">Add some tasks with due dates and we'll generate a smart daily plan.</p>
+  <button class="btn btn-primary-custom mt-2" onclick="openAddModal()">
+    <i class="bi bi-plus-lg me-1"></i>Add Your First Task
+  </button>
+</div>
+{% endif %}
+
+{% endblock %}

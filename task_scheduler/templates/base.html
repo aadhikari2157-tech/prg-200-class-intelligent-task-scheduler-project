@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}FlowTask AI{% endblock %}</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+
+<div class="layout-wrapper">
+
+  <!-- ═══ SIDEBAR ═══ -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-icon"><i class="bi bi-lightning-charge-fill"></i></div>
+      <span class="brand-name">FlowTask</span>
+      <span class="brand-badge">AI</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="{{ url_for('main.dashboard') }}"
+         class="nav-item {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+        <i class="bi bi-grid-1x2-fill nav-icon"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="{{ url_for('main.schedule') }}"
+         class="nav-item {% if request.endpoint == 'main.schedule' %}active{% endif %}">
+        <i class="bi bi-calendar-check-fill nav-icon"></i>
+        <span>AI Schedule</span>
+        <span class="nav-badge">New</span>
+      </a>
+      <a href="{{ url_for('main.calendar') }}"
+         class="nav-item {% if request.endpoint == 'main.calendar' %}active{% endif %}">
+        <i class="bi bi-calendar3 nav-icon"></i>
+        <span>Calendar</span>
+      </a>
+
+      <div class="nav-section-label mt-3">Insights</div>
+      <a href="{{ url_for('main.reports') }}"
+         class="nav-item {% if request.endpoint == 'main.reports' %}active{% endif %}">
+        <i class="bi bi-bar-chart-fill nav-icon"></i>
+        <span>Analytics</span>
+      </a>
+
+      <div class="nav-section-label mt-3">Account</div>
+      <a href="{{ url_for('auth.logout') }}" class="nav-item text-danger-soft">
+        <i class="bi bi-box-arrow-left nav-icon"></i>
+        <span>Logout</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar-sm">{{ current_user.username[0].upper() }}</div>
+        <div class="user-info-sm">
+          <div class="user-name-sm">{{ current_user.username }}</div>
+          <div class="user-role-sm">Free Plan</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ MAIN AREA ═══ -->
+  <div class="main-area">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="sidebar-toggle d-lg-none" onclick="toggleSidebar()">
+        <i class="bi bi-list"></i>
+      </button>
+      <div class="page-breadcrumb">
+        <span class="breadcrumb-app">FlowTask</span>
+        <i class="bi bi-chevron-right breadcrumb-sep"></i>
+        <span class="breadcrumb-page">{% block page_title %}Dashboard{% endblock %}</span>
+      </div>
+
+      <div class="topbar-actions">
+        <!-- NLP quick-add -->
+        <button class="btn btn-nlp" onclick="openNLPModal()" title="Add task with natural language">
+          <i class="bi bi-magic"></i>
+          <span class="d-none d-md-inline ms-1">Smart Add</span>
+        </button>
+
+        <!-- Notification bell -->
+        <div class="notif-wrapper position-relative">
+          <button class="btn btn-icon-topbar" id="notif-btn" onclick="toggleNotifPanel()">
+            <i class="bi bi-bell-fill"></i>
+            <span class="notif-dot" id="notif-badge" style="display:none"></span>
+          </button>
+          <div class="notif-panel" id="notif-panel" style="display:none">
+            <div class="notif-panel-head">
+              <span class="fw-600">Notifications</span>
+              <button class="btn-link-sm" onclick="markAllRead()">Mark all read</button>
+            </div>
+            <div class="notif-list" id="notif-list">
+              <div class="notif-empty"><i class="bi bi-check-circle me-1"></i>All caught up!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick add (regular) -->
+        <button class="btn btn-primary-custom" onclick="openAddModal()">
+          <i class="bi bi-plus-lg me-1"></i>Add Task
+        </button>
+      </div>
+    </header>
+
+    <!-- FLASH MESSAGES -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}
+      <div class="alert-flash alert-flash-{{ cat }}">
+        <i class="bi bi-{% if cat == 'success' %}check-circle{% elif cat == 'danger' %}exclamation-triangle{% else %}info-circle{% endif %} me-2"></i>
+        {{ msg }}
+        <button onclick="this.parentElement.remove()" class="flash-close">✕</button>
+      </div>
+      {% endfor %}
+    {% endwith %}
+
+    <!-- PAGE CONTENT -->
+    <main class="page-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+
+<!-- ═══ ADD TASK MODAL (Classic) ═══ -->
+<div class="modal-backdrop-custom" id="add-modal" style="display:none" onclick="closeAddModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-box-head">
+      <h5><i class="bi bi-plus-circle me-2"></i>New Task</h5>
+      <button class="modal-close-btn" onclick="closeAddModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-box-body">
+      <div class="mb-3">
+        <label class="form-label-custom">Task Title *</label>
+        <input type="text" id="task-title" class="form-input-custom" placeholder="e.g. Complete DBMS assignment" oninput="autoSuggestCategory()" />
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label-custom">Priority</label>
+          <select id="task-priority" class="form-input-custom">
+            <option value="High">🔴 High</option>
+            <option value="Medium" selected>🟡 Medium</option>
+            <option value="Low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label-custom">Category</label>
+          <select id="task-category" class="form-input-custom">
+            <option value="Academic">🎓 Academic</option>
+            <option value="Work">💼 Work</option>
+            <option value="Personal">🏠 Personal</option>
+            <option value="Health">💪 Health</option>
+            <option value="Finance">💰 Finance</option>
+            <option value="Meeting">🤝 Meeting</option>
+            <option value="Other" selected>📌 Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label-custom">Due Date</label>
+          <input type="date" id="task-due" class="form-input-custom" onchange="autoSuggestPriority()" />
+        </div>
+        <div class="col-6">
+          <label class="form-label-custom">Est. Hours</label>
+          <input type="number" id="task-hours" class="form-input-custom" value="1" min="0.25" max="24" step="0.25" />
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label-custom">Start Time</label>
+          <input type="time" id="task-start" class="form-input-custom" />
+        </div>
+        <div class="col-6">
+          <label class="form-label-custom">End Time</label>
+          <input type="time" id="task-end" class="form-input-custom" />
+        </div>
+      </div>
+      <!-- Priority suggestion chip -->
+      <div id="priority-suggestion" class="suggestion-chip" style="display:none"></div>
+      <button class="btn btn-primary-custom w-100 mt-2" onclick="submitTask()">
+        <i class="bi bi-plus-lg me-1"></i>Add Task
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ NLP MODAL ═══ -->
+<div class="modal-backdrop-custom" id="nlp-modal" style="display:none" onclick="closeNLPModal(event)">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div class="modal-box-head">
+      <h5><i class="bi bi-magic me-2"></i>Smart Task Add</h5>
+      <button class="modal-close-btn" onclick="closeNLPModal()"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <div class="modal-box-body">
+      <p class="text-muted-sm mb-3">Type a task naturally — the AI will extract the details for you.</p>
+      <div class="nlp-examples mb-3">
+        <span class="nlp-example-chip" onclick="fillNLPExample(this)">Finish DBMS assignment tomorrow at 5 PM</span>
+        <span class="nlp-example-chip" onclick="fillNLPExample(this)">Pay electricity bill by Friday, 2 hours</span>
+        <span class="nlp-example-chip" onclick="fillNLPExample(this)">Gym workout tonight, high priority</span>
+      </div>
+      <textarea id="nlp-input" class="form-input-custom" rows="3"
+                placeholder="e.g. Complete project report tomorrow at 6 PM, ~2 hours, high priority"></textarea>
+      <button class="btn btn-primary-custom w-100 mt-3" onclick="parseNLP()">
+        <i class="bi bi-stars me-1"></i>Parse & Preview
+      </button>
+
+      <!-- Preview section -->
+      <div id="nlp-preview" style="display:none" class="mt-3">
+        <div class="nlp-preview-box">
+          <div class="nlp-preview-row"><span class="nlp-key">Title</span><span id="np-title" class="nlp-val"></span></div>
+          <div class="nlp-preview-row"><span class="nlp-key">Due</span><span id="np-due" class="nlp-val"></span></div>
+          <div class="nlp-preview-row"><span class="nlp-key">Priority</span><span id="np-priority" class="nlp-val"></span></div>
+          <div class="nlp-preview-row"><span class="nlp-key">Category</span><span id="np-category" class="nlp-val"></span></div>
+          <div class="nlp-preview-row"><span class="nlp-key">Est. Hours</span><span id="np-hours" class="nlp-val"></span></div>
+        </div>
+        <button class="btn btn-success-custom w-100 mt-2" onclick="submitNLPTask()">
+          <i class="bi bi-check-lg me-1"></i>Confirm & Add Task
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

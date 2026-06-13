@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+{% block title %}Analytics — FlowTask{% endblock %}
+{% block page_title %}Analytics{% endblock %}
+
+{% block content %}
+
+<!-- KPI row -->
+<div class="kpi-row mb-4">
+  <div class="kpi-card">
+    <div class="kpi-icon bg-primary-soft"><i class="bi bi-percent"></i></div>
+    <div class="kpi-data">
+      <div class="kpi-value">{{ stats.completion_rate }}%</div>
+      <div class="kpi-label">Completion Rate</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon bg-success-soft"><i class="bi bi-clock-history"></i></div>
+    <div class="kpi-data">
+      <div class="kpi-value">{{ stats.on_time_rate }}%</div>
+      <div class="kpi-label">On-Time Rate</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon bg-warning-soft"><i class="bi bi-hourglass-split"></i></div>
+    <div class="kpi-data">
+      <div class="kpi-value">{{ stats.avg_completion_days }}d</div>
+      <div class="kpi-label">Avg. Completion</div>
+    </div>
+  </div>
+  <div class="kpi-card">
+    <div class="kpi-icon bg-info-soft"><i class="bi bi-star-fill"></i></div>
+    <div class="kpi-data">
+      <div class="kpi-value">{{ stats.most_productive_day }}</div>
+      <div class="kpi-label">Best Day</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts row -->
+<div class="charts-grid">
+
+  <!-- Weekly completions bar chart -->
+  <div class="panel">
+    <div class="panel-head">
+      <h6 class="panel-title"><i class="bi bi-bar-chart-fill me-2 text-accent"></i>Weekly Completions</h6>
+    </div>
+    <canvas id="weeklyChart" height="200"></canvas>
+  </div>
+
+  <!-- Category doughnut chart -->
+  <div class="panel">
+    <div class="panel-head">
+      <h6 class="panel-title"><i class="bi bi-pie-chart-fill me-2 text-accent"></i>Category Breakdown</h6>
+    </div>
+    <canvas id="categoryChart" height="200"></canvas>
+  </div>
+
+</div>
+
+<!-- Second row: priority + workload + table -->
+<div class="dashboard-grid mt-4">
+
+  <!-- Priority breakdown -->
+  <div class="panel">
+    <div class="panel-head">
+      <h6 class="panel-title"><i class="bi bi-flag-fill me-2 text-accent"></i>Priority Breakdown</h6>
+    </div>
+    {% for level, color_cls in [('High','danger'),('Medium','warning'),('Low','success')] %}
+    {% set done  = stats.priority_done.get(level, 0) %}
+    {% set total = stats.priority_total.get(level, 0) %}
+    {% set pct   = ((done / total * 100)|int) if total > 0 else 0 %}
+    <div class="priority-progress-row mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-1">
+        <span class="priority-pill priority-{{ level.lower() }}">{{ level }}</span>
+        <span class="text-muted-sm">{{ done }}/{{ total }} done</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill progress-{{ color_cls }}" style="width:{{ pct }}%"></div>
+      </div>
+    </div>
+    {% endfor %}
+
+    <!-- Completion ring -->
+    <div class="completion-ring-wrap mt-4">
+      <canvas id="completionRing" width="140" height="140"></canvas>
+      <div class="ring-label">
+        <div class="ring-pct">{{ stats.completion_rate }}%</div>
+        <div class="ring-sub">done</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workload table -->
+  <div class="panel">
+    <div class="panel-head">
+      <h6 class="panel-title"><i class="bi bi-calendar-week me-2 text-accent"></i>Workload by Day</h6>
+    </div>
+    {% if workload %}
+    <div class="workload-list">
+      {% for date, info in workload.items()|sort %}
+      <div class="wl-row">
+        <span class="wl-date">{{ date }}</span>
+        <div class="wl-bar-wrap">
+          <div class="wl-bar wl-{{ info.status }}" style="width: {{ [info.total_hours * 10, 100]|min }}%"></div>
+        </div>
+        <span class="wl-hours">{{ info.total_hours }}h</span>
+        <span class="wl-badge wl-badge-{{ info.status }}">{{ info.status }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% if tips %}
+    <div class="mt-3">
+      {% for tip in tips %}
+      <div class="ai-tip mb-2">{{ tip }}</div>
+      {% endfor %}
+    </div>
+    {% endif %}
+    {% else %}
+    <p class="empty-placeholder">No workload data yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Full task table -->
+<div class="panel mt-4">
+  <div class="panel-head">
+    <h6 class="panel-title"><i class="bi bi-table me-2 text-accent"></i>All Tasks</h6>
+    <input type="text" id="task-search" class="form-input-custom" style="max-width:220px;padding:6px 12px"
+           placeholder="Search tasks..." oninput="searchTable()" />
+  </div>
+  <div class="table-responsive">
+    <table class="data-table" id="task-table">
+      <thead>
+        <tr>
+          <th>Task</th>
+          <th>Category</th>
+          <th>Priority</th>
+          <th>Risk</th>
+          <th>Status</th>
+          <th>Due Date</th>
+          <th>Est. Hours</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for task in tasks %}
+        <tr>
+          <td class="task-name-cell">{{ task.title }}</td>
+          <td><span class="cat-chip">{{ task.category }}</span></td>
+          <td><span class="priority-pill priority-{{ task.priority.lower() }}">{{ task.priority }}</span></td>
+          <td>
+            <span class="risk-pill risk-{{ task.risk_level.lower() }}"
+                  title="{{ task.risk_reason }}">{{ task.risk_level }}</span>
+          </td>
+          <td>
+            <span class="status-pill status-{{ task.status.lower().replace(' ','-') }}">{{ task.status }}</span>
+          </td>
+          <td>{{ task.due_date.strftime('%b %d, %Y') if task.due_date else '—' }}</td>
+          <td>{{ task.estimated_hours }}h</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ── Chart data from Flask ──
+const weeklyData   = {{ stats.weekly   | tojson | safe }};
+const categoryData = {{ stats.category_counts | tojson | safe }};
+const completionRate = {{ stats.completion_rate }};
+
+// Weekly completions bar chart
+const weekOrder = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+new Chart(document.getElementById('weeklyChart'), {
+  type: 'bar',
+  data: {
+    labels: weekOrder,
+    datasets: [{
+      label: 'Tasks Completed',
+      data: weekOrder.map(d => weeklyData[d] || 0),
+      backgroundColor: '#6366f1',
+      borderRadius: 8,
+      borderSkipped: false,
+    }]
+  },
+  options: {
+    responsive: true, plugins: { legend: { display: false } },
+    scales: {
+      y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f1f5f9' } },
+      x: { grid: { display: false } }
+    }
+  }
+});
+
+// Category doughnut
+const catLabels = Object.keys(categoryData);
+const catValues = Object.values(categoryData);
+const catColors = ['#6366f1','#f59e0b','#22c55e','#ef4444','#14b8a6','#8b5cf6','#94a3b8'];
+new Chart(document.getElementById('categoryChart'), {
+  type: 'doughnut',
+  data: {
+    labels: catLabels,
+    datasets: [{
+      data: catValues,
+      backgroundColor: catColors.slice(0, catLabels.length),
+      borderWidth: 2,
+      borderColor: '#ffffff',
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 12 } } } },
+    cutout: '65%',
+  }
+});
+
+// Completion ring
+new Chart(document.getElementById('completionRing'), {
+  type: 'doughnut',
+  data: {
+    datasets: [{
+      data: [completionRate, 100 - completionRate],
+      backgroundColor: ['#6366f1', '#f1f5f9'],
+      borderWidth: 0,
+    }]
+  },
+  options: {
+    cutout: '78%',
+    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+    responsive: false,
+  }
+});
+
+// Table search
+function searchTable() {
+  const q = document.getElementById('task-search').value.toLowerCase();
+  document.querySelectorAll('#task-table tbody tr').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+  });
+}
+</script>
+{% endblock %}
