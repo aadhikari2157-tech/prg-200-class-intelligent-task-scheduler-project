@@ -8,8 +8,8 @@ from scheduler import (
     get_next_task, analyze_workload, get_productivity_stats
 )
 
-main = Blueprint('main', _name_)
-auth = Blueprint('auth', _name_)
+main = Blueprint('main', __name__)
+auth = Blueprint('auth', __name__)
 
 # ───────────── AUTH ─────────────
 
@@ -110,6 +110,11 @@ def reports():
     stats = get_productivity_stats(tasks)
     workload = analyze_workload(tasks)
     return render_template('reports.html', tasks=tasks, stats=stats, workload=workload)
+
+@main.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html')
 
 # ───────────── TASK API ─────────────
 

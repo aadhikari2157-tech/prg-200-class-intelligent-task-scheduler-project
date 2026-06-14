@@ -96,22 +96,23 @@ def get_productivity_stats(tasks):
     completed = len(done)
     completion_rate = round((completed / total * 100) if total > 0 else 0, 1)
 
-    ompletion_times = []
+    completion_times = []
     for t in done:
         if t.completed_at and t.created_at:
             days = (t.completed_at - t.created_at).days
             completion_times.append(days)
+
     avg_completion_days = round(
         sum(completion_times) / len(completion_times), 1
-    ) if completion_times else 0
+    ) if len(completion_times) > 0 else 0
 
     priority_done = {'High': 0, 'Medium': 0, 'Low': 0}
     priority_total = {'High': 0, 'Medium': 0, 'Low': 0}
     for t in tasks:
-        priority_total[t.priority] = priority_total.get(t.priority, 0) + 1
+        p = t.priority if t.priority in priority_total else 'Low'
+        priority_total[p] = priority_total.get(p, 0) + 1
         if t.status == 'Done':
-            priority_done[t.priority] = priority_done.get(t.priority, 0) + 1
-    
+            priority_done[p] = priority_done.get(p, 0) + 1
 
     on_time = 0
     late = 0
@@ -121,13 +122,13 @@ def get_productivity_stats(tasks):
                 on_time += 1
             else:
                 late += 1
+
     on_time_rate = round(
         (on_time / (on_time + late) * 100) if (on_time + late) > 0 else 0, 1
     )
 
     return {
-    
-     'completion_rate': completion_rate,
+        'completion_rate': completion_rate,
         'avg_completion_days': avg_completion_days,
         'priority_done': priority_done,
         'priority_total': priority_total,
@@ -135,7 +136,6 @@ def get_productivity_stats(tasks):
         'total': total,
         'completed': completed,
     }
-        
 
 
 
