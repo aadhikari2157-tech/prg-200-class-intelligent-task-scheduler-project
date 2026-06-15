@@ -43,22 +43,21 @@
   <div class="stat-card">
     <div class="stat-label">Total Tasks</div>
     <div class="stat-value">{{ total }}</div>
-    <div class="stat-sub">+5 from last week</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Completed</div>
     <div class="stat-value">{{ completed }}</div>
-    <div class="stat-sub">+0 from last week</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">In Progress</div>
     <div class="stat-value">{{ in_progress }}</div>
-    <div class="stat-sub">+1 from last week</div>
   </div>
   <div class="stat-card">
     <div class="stat-label">Overdue</div>
     <div class="stat-value overdue">{{ overdue }}</div>
+    {% if overdue > 0 %}
     <div class="stat-sub overdue">{{ overdue }} need attention</div>
+    {% endif %}
   </div>
 </div>
 
