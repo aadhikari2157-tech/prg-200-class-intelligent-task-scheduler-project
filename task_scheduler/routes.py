@@ -23,7 +23,28 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         email = request.form['email']
-        password = generate_password_hash(request.form['password'])
+        raw_password = request.form['password']
+
+        # Password strength validation
+        import re
+        errors = []
+        if len(raw_password) < 8:
+            errors.append('at least 8 characters')
+        if not re.search(r'[0-9]', raw_password):
+            errors.append('at least one number (0-9)')
+        if not re.search(r'[@#$%^&*!]', raw_password):
+            errors.append('at least one special character (@ # $ % ^ & * !)')
+        if not re.search(r'[A-Z]', raw_password):
+            errors.append('at least one uppercase letter')
+
+        if errors:
+            flash(
+                'Weak password. Your password needs: ' + ', '.join(errors) + '.',
+                'danger'
+            )
+            return render_template('register.html')
+
+        password = generate_password_hash(raw_password)
         user = User(username=username, email=email, password=password)
         db.session.add(user)
         db.session.commit()
