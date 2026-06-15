@@ -147,13 +147,19 @@ def settings():
 def add_task():
     data = request.get_json()
     due = datetime.strptime(data['due_date'], '%Y-%m-%d') if data.get('due_date') else None
+    start = data.get('start_time', '')
+    end = data.get('end_time', '')
+
+    # System automatically assigns priority — no user input needed
+    auto_priority = auto_assign_priority(due, start, end)
+
     task = Task(
         title=data['title'],
-        priority=data.get('priority', 'Medium'),
-        status=data.get('status', 'Pending'),
+        priority=auto_priority,
+        status='Pending',
         due_date=due,
-        start_time=data.get('start_time', ''),
-        end_time=data.get('end_time', ''),
+        start_time=start,
+        end_time=end,
         user_id=current_user.id
     )
     db.session.add(task)
