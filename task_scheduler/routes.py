@@ -12,8 +12,8 @@ from scheduler import (
 main = Blueprint('main', __name__)
 auth = Blueprint('auth', __name__)
 =======
-main = Blueprint('main',  name_)
-auth = Blueprint('auth', _name_)
+main = Blueprint('main',  __name__)
+auth = Blueprint('auth', __name__)
 >>>>>>> Stashed changes
 
 # ───────────── AUTH ─────────────
