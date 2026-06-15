@@ -5,16 +5,14 @@ from datetime import datetime
 from models import db, User, Task, Notification
 from scheduler import (
     prioritize_tasks, get_todays_tasks, get_overdue_tasks,
-    get_next_task, analyze_workload, get_productivity_stats
+    get_next_task, analyze_workload, get_productivity_stats,
+    auto_assign_priority
 )
 
-<<<<<<< Updated upstream
 main = Blueprint('main', __name__)
 auth = Blueprint('auth', __name__)
-=======
-main = Blueprint('main',  name_)
-auth = Blueprint('auth', _name_)
->>>>>>> Stashed changes
+main = Blueprint('main',  __name__)
+auth = Blueprint('auth', __name__)
 
 # ───────────── AUTH ─────────────
 
