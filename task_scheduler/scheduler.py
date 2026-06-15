@@ -1,4 +1,5 @@
 from datetime import datetime
+
 def calculate_duration_minutes(start_time, end_time):
     try:
         sh, sm = map(int, start_time.split(':'))
@@ -6,13 +7,51 @@ def calculate_duration_minutes(start_time, end_time):
         return (eh * 60 + em) - (sh * 60 + sm)
     except:
         return 60
-    
+
+
+def auto_assign_priority(due_date, start_time, end_time):
+    """
+    Automatically assigns High, Medium or Low priority
+    based on deadline and task duration — no user input needed.
+    """
+    if not due_date:
+        return 'Low'
+
+    hours_left = (due_date - datetime.utcnow()).total_seconds() / 3600
+    duration = calculate_duration_minutes(start_time, end_time)
+
+    # Overdue or due very soon
+    if hours_left < 0:
+        return 'High'
+
+    # Due within 24 hours
+    elif hours_left <= 24:
+        return 'High'
+
+    # Due within 3 days AND task takes more than 1 hour
+    elif hours_left <= 72 and duration > 60:
+        return 'High'
+
+    # Due within 3 days but short task
+    elif hours_left <= 72:
+        return 'Medium'
+
+    # Due within a week
+    elif hours_left <= 168:
+        return 'Medium'
+
+    # Due later than a week
+    else:
+        return 'Low'
+
+
 def score(task):
+    # --- FACTOR 1: Auto assigned priority weight ---
     priority_weight = {'High': 30, 'Medium': 20, 'Low': 10}
     p = priority_weight.get(task.priority, 10)
 
+    # --- FACTOR 2: Urgency based on exact hours left ---
     urgency = 0
-
     if task.due_date:
         hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
         if hours_left < 0:
@@ -26,7 +65,7 @@ def score(task):
         else:
             urgency = 5
 
-
+    # --- FACTOR 3: Duration bonus ---
     duration = calculate_duration_minutes(task.start_time, task.end_time)
     if duration <= 30:
         duration_bonus = 5
@@ -35,10 +74,12 @@ def score(task):
     else:
         duration_bonus = 0
 
+    # --- FACTOR 4: Age bonus ---
     days_old = (datetime.utcnow() - task.created_at).days
     age_bonus = min(days_old, 10)
 
     return p + urgency + duration_bonus + age_bonus
+
 
 def prioritize_tasks(tasks):
     pending = [t for t in tasks if t.status != 'Done']
@@ -56,13 +97,19 @@ def get_todays_tasks(tasks):
     pending = [t for t in tasks if t.status != 'Done']
     return [t for t in pending if t.due_date and t.due_date.date() == today]
 
+
 def get_overdue_tasks(tasks):
     now = datetime.utcnow()
-    return [t for t in tasks if t.status != 'Done' and t.due_date and t.due_date < now]
+    return [
+        t for t in tasks
+        if t.status != 'Done' and t.due_date and t.due_date < now
+    ]
+
 
 def get_next_task(tasks):
     prioritized = prioritize_tasks(tasks)
     return prioritized[0] if prioritized else None
+
 
 def analyze_workload(tasks):
     from collections import defaultdict
@@ -90,11 +137,14 @@ def analyze_workload(tasks):
         }
     return result
 
+
 def get_productivity_stats(tasks):
     done = [t for t in tasks if t.status == 'Done']
     total = len(tasks)
     completed = len(done)
-    completion_rate = round((completed / total * 100) if total > 0 else 0, 1)
+    completion_rate = round(
+        (completed / total * 100) if total > 0 else 0, 1
+    )
 
     completion_times = []
     for t in done:
@@ -136,6 +186,3 @@ def get_productivity_stats(tasks):
         'total': total,
         'completed': completed,
     }
-
-
-
