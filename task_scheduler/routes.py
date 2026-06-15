@@ -8,8 +8,13 @@ from scheduler import (
     get_next_task, analyze_workload, get_productivity_stats
 )
 
+<<<<<<< Updated upstream
 main = Blueprint('main', __name__)
 auth = Blueprint('auth', __name__)
+=======
+main = Blueprint('main',  name_)
+auth = Blueprint('auth', _name_)
+>>>>>>> Stashed changes
 
 # ───────────── AUTH ─────────────
 
