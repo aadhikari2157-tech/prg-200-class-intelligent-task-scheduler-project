@@ -11,20 +11,87 @@
       <span class="logo-text">Task Scheduler</span>
     </div>
     <h2>Create account</h2>
+
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% for cat, msg in messages %}
         <div class="alert alert-{{ cat }}">{{ msg }}</div>
       {% endfor %}
     {% endwith %}
+
     <form method="POST">
       <input type="text" name="username" placeholder="Username" class="input" required/>
       <input type="email" name="email" placeholder="Email" class="input" required/>
-      <input type="password" name="password" placeholder="Password" class="input" required/>
-      <button type="submit" class="btn-primary full-width">Register</button>
+
+      <!-- Password field with strength checker -->
+      <input
+        type="password"
+        name="password"
+        id="reg-password"
+        placeholder="Password"
+        class="input"
+        required
+        oninput="checkStrength(this.value)"
+      />
+
+      <!-- Strength bar -->
+      <div class="strength-bar-track">
+        <div class="strength-bar-fill" id="strength-bar"></div>
+      </div>
+      <div class="strength-text" id="strength-text"></div>
+
+      <!-- Password rules -->
+      <div class="password-rules">
+        <div class="rule" id="rule-length">✗ At least 8 characters</div>
+        <div class="rule" id="rule-number">✗ At least one number</div>
+        <div class="rule" id="rule-special">✗ At least one special character (@ # $ %)</div>
+        <div class="rule" id="rule-upper">✗ At least one uppercase letter</div>
+      </div>
+
+      <button type="submit" class="btn-primary full-width" style="margin-top:16px">
+        Register
+      </button>
     </form>
     <p style="text-align:center;margin-top:16px">
       Have an account? <a href="{{ url_for('auth.login') }}">Login</a>
     </p>
   </div>
+
+  <script>
+  function checkStrength(password) {
+    const bar = document.getElementById('strength-bar');
+    const text = document.getElementById('strength-text');
+
+    const hasLength = password.length >= 8;
+    const hasNumber = /[0-9]/.test(password);
+    const hasSpecial = /[@#$%^&*!]/.test(password);
+    const hasUpper = /[A-Z]/.test(password);
+
+    // Update rule indicators
+    document.getElementById('rule-length').className = 'rule ' + (hasLength ? 'pass' : '');
+    document.getElementById('rule-length').textContent = (hasLength ? '✓' : '✗') + ' At least 8 characters';
+
+    document.getElementById('rule-number').className = 'rule ' + (hasNumber ? 'pass' : '');
+    document.getElementById('rule-number').textContent = (hasNumber ? '✓' : '✗') + ' At least one number';
+
+    document.getElementById('rule-special').className = 'rule ' + (hasSpecial ? 'pass' : '');
+    document.getElementById('rule-special').textContent = (hasSpecial ? '✓' : '✗') + ' At least one special character (@ # $ %)';
+
+    document.getElementById('rule-upper').className = 'rule ' + (hasUpper ? 'pass' : '');
+    document.getElementById('rule-upper').textContent = (hasUpper ? '✓' : '✗') + ' At least one uppercase letter';
+
+    // Calculate score
+    const score = [hasLength, hasNumber, hasSpecial, hasUpper].filter(Boolean).length;
+
+    // Update bar
+    const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+    const labels = ['', 'Weak — add more requirements', 'Fair — getting better', 'Good — almost there', 'Strong password ✓'];
+    const widths = ['0%', '25%', '50%', '75%', '100%'];
+
+    bar.style.width = widths[score];
+    bar.style.background = colors[score];
+    text.textContent = score > 0 ? labels[score] : '';
+    text.style.color = colors[score];
+  }
+  </script>
 </body>
 </html>
