@@ -14,8 +14,6 @@ async function submitTask() {
   }
   const data = {
     title,
-    priority: document.getElementById('task-priority').value,
-    status: document.getElementById('task-status').value,
     due_date: document.getElementById('task-due').value,
     start_time: document.getElementById('task-start').value,
     end_time: document.getElementById('task-end').value,
