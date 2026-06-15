@@ -23,9 +23,7 @@
     </span>
   </div>
   <div class="smart-banner-right">
-    <span class="badge badge-{{ task.priority.lower() }}">
-  {{ task.priority }} — Auto
-</span>
+    <span class="badge badge-{{ next_task.priority.lower() }}">{{ next_task.priority }} — Auto</span>
     <button class="btn-primary small" onclick="markDone({{ next_task.id }}, this)">Mark done</button>
   </div>
 </div>
@@ -83,9 +81,7 @@
           📅 Due today
         </div>
       </div>
-      <span class="badge badge-{{ task.priority.lower() }}">
-  {{ task.priority }} — Auto
-</span>
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
       <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
     </div>
     {% endfor %}
@@ -103,9 +99,7 @@
             {% if task.due_date %}📅 Due {{ task.due_date.strftime('%b %d') }}{% endif %}
           </div>
         </div>
-       <span class="badge badge-{{ task.priority.lower() }}">
-  {{ task.priority }} — Auto
-</span>
+        <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
         <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
       </div>
       {% endif %}
@@ -128,9 +122,7 @@
           {% if task.completed_at %}📅 Done on {{ task.completed_at.strftime('%m/%d/%Y') }}{% endif %}
         </div>
       </div>
-     <span class="badge badge-{{ task.priority.lower() }}">
-  {{ task.priority }} — Auto
-</span>
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
     </div>
     {% else %}
     <p class="empty-state">No completed tasks yet</p>
