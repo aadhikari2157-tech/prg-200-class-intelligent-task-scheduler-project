@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Task Scheduler</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}"/>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Task Scheduler</span>
+      </div>
+      <nav>
+        <a href="{{ url_for('main.dashboard') }}" class="nav-link {% if request.endpoint == 'main.dashboard' %}active{% endif %}">
+          <span>🏠</span> Dashboard
+        </a>
+        <a href="{{ url_for('main.calendar') }}" class="nav-link {% if request.endpoint == 'main.calendar' %}active{% endif %}">
+          <span>📅</span> Calendar
+        </a>
+        <a href="{{ url_for('main.reports') }}" class="nav-link {% if request.endpoint == 'main.reports' %}active{% endif %}">
+          <span>📊</span> Reports
+        </a>
+        <a href="{{ url_for('main.settings') }}" class="nav-link {% if request.endpoint == 'main.settings' %}active{% endif %}">
+  <span>⚙️</span> Settings
+</a>
+      </nav>
+    </aside>
+
+    <!-- Main content -->
+    <main class="main-content">
+      <!-- Topbar -->
+      <div class="topbar">
+        <h1 class="page-title">{% block page_title %}Dashboard{% endblock %}</h1>
+        <div class="topbar-right">
+          <!-- Notification Bell -->
+          <div class="notif-wrapper">
+            <button class="btn-icon notif-bell" onclick="toggleNotifPanel()" id="notif-btn">
+              🔔
+              <span class="notif-badge" id="notif-badge" style="display:none">0</span>
+            </button>
+            <!-- Dropdown panel -->
+            <div class="notif-panel" id="notif-panel" style="display:none">
+              <div class="notif-panel-header">
+                <span>Notifications</span>
+                <button class="notif-clear-btn" onclick="markAllRead()">Mark all read</button>
+              </div>
+              <div class="notif-list" id="notif-list">
+                <div class="notif-empty">Loading...</div>
+              </div>
+            </div>
+          </div>
+          {% if request.endpoint == 'main.dashboard' %}
+          <button class="btn-primary" onclick="openAddModal()">+ Quick Task</button>
+          {% endif %}
+          <div class="user-avatar">{{ current_user.username[0].upper() }}</div>
+          <span class="username">Hi, {{ current_user.username }}</span>
+          <a href="{{ url_for('auth.logout') }}" class="btn-logout">Logout</a>
+        </div>
+      </div>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for cat, msg in messages %}
+          <div class="alert alert-{{ cat }}">{{ msg }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- Add Task Modal -->
+  <div id="add-modal" class="modal-overlay" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Add New Task</h2>
+        <button onclick="closeModal()" class="btn-close">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="task-title" placeholder="Task title" class="input"/>
+        <div class="row-2">
+          <select id="task-priority" class="input">
+            <option>High</option>
+            <option selected>Medium</option>
+            <option>Low</option>
+          </select>
+          <select id="task-status" class="input">
+            <option>Pending</option>
+            <option>In Progress</option>
+          </select>
+        </div>
+        <input type="date" id="task-due" class="input"/>
+        <div class="row-2">
+          <input type="time" id="task-start" class="input" placeholder="Start time"/>
+          <input type="time" id="task-end" class="input" placeholder="End time"/>
+        </div>
+        <button class="btn-primary full-width" onclick="submitTask()">Add Task</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

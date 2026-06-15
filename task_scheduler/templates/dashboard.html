@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block page_title %}🏠 Dashboard{% endblock %}
+
+{% block content %}
+
+{% if next_task %}
+<div class="smart-banner">
+  <div class="smart-banner-left">
+    <span class="smart-label">⚡ Do this next</span>
+    <span class="smart-title">{{ next_task.title }}</span>
+    <span class="smart-meta">
+      {% if next_task.start_time %}⏰ {{ next_task.start_time }}–{{ next_task.end_time }}  {% endif %}
+      {% if next_task.due_date %}
+        {% set hours_left = ((next_task.due_date - now).total_seconds() / 3600)|int %}
+        {% if hours_left < 0 %}
+          <span class="urgent-tag">⚠️ Overdue</span>
+        {% elif hours_left < 24 %}
+          <span class="urgent-tag">🔥 Due in {{ hours_left }}h</span>
+        {% else %}
+          📅 Due {{ next_task.due_date.strftime('%b %d') }}
+        {% endif %}
+      {% endif %}
+    </span>
+  </div>
+  <div class="smart-banner-right">
+    <span class="badge badge-{{ next_task.priority.lower() }}">{{ next_task.priority }}</span>
+    <button class="btn-primary small" onclick="markDone({{ next_task.id }}, this)">Mark done</button>
+  </div>
+</div>
+{% endif %}
+
+{% if overdue_tasks %}
+<div class="overdue-banner">
+  ⚠️ You have {{ overdue_tasks|length }} overdue task{{ 's' if overdue_tasks|length > 1 else '' }}:
+  {% for t in overdue_tasks[:3] %}
+    <strong>{{ t.title }}</strong>{% if not loop.last %}, {% endif %}
+  {% endfor %}
+  {% if overdue_tasks|length > 3 %} and {{ overdue_tasks|length - 3 }} more{% endif %}
+</div>
+{% endif %}
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Total Tasks</div>
+    <div class="stat-value">{{ total }}</div>
+    <div class="stat-sub">+5 from last week</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Completed</div>
+    <div class="stat-value">{{ completed }}</div>
+    <div class="stat-sub">+0 from last week</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">In Progress</div>
+    <div class="stat-value">{{ in_progress }}</div>
+    <div class="stat-sub">+1 from last week</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Overdue</div>
+    <div class="stat-value overdue">{{ overdue }}</div>
+    <div class="stat-sub overdue">{{ overdue }} need attention</div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card">
+    <div class="card-header">
+      <h2>📋 Task List</h2>
+      <button class="btn-primary small" onclick="openAddModal()">+ Add Task</button>
+    </div>
+
+    {% if today_tasks %}
+    <div class="section-label">Today's Tasks</div>
+    {% for task in today_tasks %}
+    <div class="task-item" id="task-{{ task.id }}">
+      <input type="checkbox" onchange="markDone({{ task.id }}, this)"/>
+      <div class="task-info">
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-meta">
+          {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+          📅 Due today
+        </div>
+      </div>
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
+      <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="section-label">Smart Order</div>
+    {% for task in smart_order %}
+      {% if task not in today_tasks %}
+      <div class="task-item" id="task-{{ task.id }}">
+        <input type="checkbox" onchange="markDone({{ task.id }}, this)"/>
+        <div class="task-info">
+          <div class="task-title">{{ task.title }}</div>
+          <div class="task-meta">
+            {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+            {% if task.due_date %}📅 Due {{ task.due_date.strftime('%b %d') }}{% endif %}
+          </div>
+        </div>
+        <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
+        <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
+      </div>
+      {% endif %}
+    {% else %}
+    <p class="empty-state">No pending tasks 🎉</p>
+    {% endfor %}
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>✅ Done Tasks</h2>
+    </div>
+    {% for task in done_tasks[:6] %}
+    <div class="task-item done">
+      <span class="done-check">✅</span>
+      <div class="task-info">
+        <div class="task-title">{{ task.title }}</div>
+        <div class="task-meta">
+          {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+          {% if task.completed_at %}📅 Done on {{ task.completed_at.strftime('%m/%d/%Y') }}{% endif %}
+        </div>
+      </div>
+      <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }}</span>
+    </div>
+    {% else %}
+    <p class="empty-state">No completed tasks yet</p>
+    {% endfor %}
+  </div>
+</div>
+
+{% endblock %}

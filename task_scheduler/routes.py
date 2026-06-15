@@ -9,8 +9,13 @@ from scheduler import (
     auto_assign_priority
 )
 
-main = Blueprint('main', _name_)
-auth = Blueprint('auth', _name_)
+<<<<<<< Updated upstream
+main = Blueprint('main', __name__)
+auth = Blueprint('auth', __name__)
+=======
+main = Blueprint('main',  __name__)
+auth = Blueprint('auth', __name__)
+>>>>>>> Stashed changes
 
 # ───────────── AUTH ─────────────
 
@@ -111,6 +116,11 @@ def reports():
     stats = get_productivity_stats(tasks)
     workload = analyze_workload(tasks)
     return render_template('reports.html', tasks=tasks, stats=stats, workload=workload)
+
+@main.route('/settings')
+@login_required
+def settings():
+    return render_template('settings.html')
 
 # ───────────── TASK API ─────────────
 

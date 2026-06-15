@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block page_title %}⚙️ Settings{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:600px">
+  <div class="card-header">
+    <h2>Account Settings</h2>
+  </div>
+
+  <div style="padding: 8px 0">
+    <div style="margin-bottom:20px">
+      <div class="stat-label">Username</div>
+      <div style="font-size:15px;font-weight:600;margin-top:4px">{{ current_user.username }}</div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div class="stat-label">Email</div>
+      <div style="font-size:15px;font-weight:600;margin-top:4px">{{ current_user.email }}</div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <div class="stat-label">Institution</div>
+      <div style="font-size:15px;font-weight:600;margin-top:4px">Kings College — Intelligent Task Scheduler</div>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #f1f5f9;margin:20px 0"/>
+
+    <div>
+      <div class="stat-label" style="margin-bottom:8px">Weightage Guide</div>
+      <table class="report-table">
+        <thead>
+          <tr>
+            <th>Weightage</th>
+            <th>Meaning</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1 — 2</td><td>Optional reading, low stakes</td></tr>
+          <tr><td>3 — 4</td><td>Minor assignment, small marks</td></tr>
+          <tr><td>5 — 6</td><td>Regular assignment, moderate marks</td></tr>
+          <tr><td>7 — 8</td><td>Major assignment, high marks</td></tr>
+          <tr><td>9 — 10</td><td>Final exam, critical deadline</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr style="border:none;border-top:1px solid #f1f5f9;margin:20px 0"/>
+
+    <a href="{{ url_for('auth.logout') }}" class="btn-primary" style="display:inline-block;text-decoration:none">
+      Logout
+    </a>
+  </div>
+</div>
+{% endblock %}
