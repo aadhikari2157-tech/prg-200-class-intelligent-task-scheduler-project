@@ -9,13 +9,10 @@ from scheduler import (
     auto_assign_priority
 )
 
-<<<<<<< Updated upstream
 main = Blueprint('main', __name__)
 auth = Blueprint('auth', __name__)
-=======
 main = Blueprint('main',  __name__)
 auth = Blueprint('auth', __name__)
->>>>>>> Stashed changes
 
 # ───────────── AUTH ─────────────
 
