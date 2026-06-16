@@ -12,9 +12,10 @@ async function submitTask() {
     alert('Please enter a task title.');
     return;
   }
-  const data = {
+const data = {
     title,
     due_date: document.getElementById('task-due').value,
+    deadline_time: document.getElementById('task-deadline-time').value,
     start_time: document.getElementById('task-start').value,
     end_time: document.getElementById('task-end').value,
   };
