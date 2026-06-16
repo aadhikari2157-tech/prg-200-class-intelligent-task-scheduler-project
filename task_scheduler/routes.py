@@ -146,11 +146,21 @@ def settings():
 @login_required
 def add_task():
     data = request.get_json()
-    due = datetime.strptime(data['due_date'], '%Y-%m-%d') if data.get('due_date') else None
     start = data.get('start_time', '')
     end = data.get('end_time', '')
+    deadline_time = data.get('deadline_time', '')
 
-    # System automatically assigns priority — no user input needed
+    # Combine due date + deadline time into one datetime
+    due = None
+    if data.get('due_date'):
+        date_str = data['due_date']
+        if deadline_time:
+            # Combine date and time e.g. 2026-06-16 21:00
+            due = datetime.strptime(f"{date_str} {deadline_time}", '%Y-%m-%d %H:%M')
+        else:
+            due = datetime.strptime(date_str, '%Y-%m-%d')
+
+    # System automatically assigns priority based on deadline
     auto_priority = auto_assign_priority(due, start, end)
 
     task = Task(
@@ -158,6 +168,7 @@ def add_task():
         priority=auto_priority,
         status='Pending',
         due_date=due,
+        deadline_time=deadline_time,
         start_time=start,
         end_time=end,
         user_id=current_user.id
