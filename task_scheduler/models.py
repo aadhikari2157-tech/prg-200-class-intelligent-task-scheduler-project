@@ -18,6 +18,7 @@ class Task(db.Model):
     priority = db.Column(db.String(10), default='Medium')
     status = db.Column(db.String(20), default='Pending')
     due_date = db.Column(db.DateTime, nullable=True)
+    deadline_time = db.Column(db.String(10), default='')
     start_time = db.Column(db.String(10), default='')
     end_time = db.Column(db.String(10), default='')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
