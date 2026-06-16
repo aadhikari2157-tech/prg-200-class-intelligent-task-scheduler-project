@@ -77,7 +77,7 @@
         <div class="task-title">{{ task.title }}</div>
         <div class="task-meta">
           {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
-          📅 Due today
+          📅 Due today{% if task.deadline_time %} at {{ task.deadline_time }}{% endif %}
         </div>
       </div>
       <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
@@ -95,7 +95,10 @@
           <div class="task-title">{{ task.title }}</div>
           <div class="task-meta">
             {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
-            {% if task.due_date %}📅 Due {{ task.due_date.strftime('%b %d') }}{% endif %}
+           {% if task.due_date %}
+            📅 Due {{ task.due_date.strftime('%b %d') }}
+            {% if task.deadline_time %} at {{ task.deadline_time }}{% endif %}
+          {% endif %}
           </div>
         </div>
         <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
