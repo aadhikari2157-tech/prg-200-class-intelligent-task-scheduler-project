@@ -84,11 +84,23 @@
         <div class="auto-priority-notice">
           ⚡ Priority will be assigned automatically based on deadline
         </div>
-        <input type="date" id="task-due" class="input"/>
+
+        <!-- Due date and deadline time side by side -->
+        <label class="field-label">📅 Submission Deadline</label>
+        <div class="row-2">
+          <input type="date" id="task-due" class="input"/>
+          <input type="time" id="task-deadline-time" class="input" placeholder="Deadline time e.g. 21:00"/>
+        </div>
+        <div class="field-hint">Set the exact date and time this task must be submitted by</div>
+
+        <!-- Work time -->
+        <label class="field-label" style="margin-top:10px">⏰ When will you work on it?</label>
         <div class="row-2">
           <input type="time" id="task-start" class="input" placeholder="Start time"/>
           <input type="time" id="task-end" class="input" placeholder="End time"/>
         </div>
+        <div class="field-hint">Set the time block you plan to work on this task</div>
+
         <button class="btn-primary full-width" onclick="submitTask()">Add Task</button>
       </div>
 
