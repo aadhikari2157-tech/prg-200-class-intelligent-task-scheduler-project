@@ -6,27 +6,57 @@ function closeModal() {
   document.getElementById('add-modal').style.display = 'none';
 }
 
+let isSubmitting = false;
+
 async function submitTask() {
+  if (isSubmitting) return;
+
   const title = document.getElementById('task-title').value.trim();
   if (!title) {
     alert('Please enter a task title.');
     return;
   }
-const data = {
+
+  const due = document.getElementById('task-due').value;
+  if (!due) {
+    alert('Please enter a due date.');
+    return;
+  }
+
+  isSubmitting = true;
+  const btn = document.querySelector('.modal .btn-primary.full-width');
+  if (btn) {
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+  }
+
+  const data = {
     title,
-    due_date: document.getElementById('task-due').value,
+    due_date: due,
     deadline_time: document.getElementById('task-deadline-time').value,
     start_time: document.getElementById('task-start').value,
     end_time: document.getElementById('task-end').value,
   };
-  const res = await fetch('/task/add', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  });
-  if ((await res.json()).success) {
-    closeModal();
-    location.reload();
+
+  try {
+    const res = await fetch('/task/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    const result = await res.json();
+    if (result.success) {
+      closeModal();
+      location.reload();
+    }
+  } catch (err) {
+    console.error('Error adding task:', err);
+  } finally {
+    isSubmitting = false;
+    if (btn) {
+      btn.textContent = 'Add Task';
+      btn.disabled = false;
+    }
   }
 }
 
