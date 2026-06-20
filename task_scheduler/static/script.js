@@ -2,7 +2,6 @@ function openAddModal() {
   document.getElementById('add-modal').style.display = 'flex';
 }
 
-
 function closeModal() {
   document.getElementById('add-modal').style.display = 'none';
   document.getElementById('task-title').value = '';
@@ -48,12 +47,28 @@ async function submitTask() {
     end_time: document.getElementById('task-end').value,
   };
 
+  const safetyTimeout = setTimeout(() => {
+    isSubmitting = false;
+    if (btn) {
+      btn.textContent = 'Add Task';
+      btn.disabled = false;
+    }
+    alert('Request took too long. Please check your connection and try again.');
+  }, 8000);
+
   try {
     const res = await fetch('/task/add', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data)
     });
+
+    clearTimeout(safetyTimeout);
+
+    if (!res.ok && res.status !== 400) {
+      throw new Error('Server error: ' + res.status);
+    }
+
     const result = await res.json();
 
     if (result.success) {
@@ -61,18 +76,22 @@ async function submitTask() {
       location.reload();
     } else if (result.error === 'duplicate') {
       showDuplicateWarning(result.message);
+    } else {
+      alert(result.message || 'Could not add task. Please try again.');
     }
   } catch (err) {
+    clearTimeout(safetyTimeout);
     console.error('Error adding task:', err);
+    alert('Something went wrong while adding the task. Check the console for details.');
   } finally {
     isSubmitting = false;
     if (btn) {
-      S
       btn.textContent = 'Add Task';
       btn.disabled = false;
     }
   }
 }
+
 function showDuplicateWarning(message) {
   let warningEl = document.getElementById('duplicate-warning');
   if (!warningEl) {

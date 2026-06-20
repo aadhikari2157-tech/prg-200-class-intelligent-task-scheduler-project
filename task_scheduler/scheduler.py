@@ -15,38 +15,84 @@ def calculate_duration_minutes(start_time, end_time):
         return 60
 
 
-def auto_assign_priority(due_date, start_time, end_time):
+def classify_task_type(title):
+    """
+    Scans the task title for keywords and returns a category weight.
+    Higher weight = more academically important task.
+    """
+    title_lower = title.lower()
+
+    academic_keywords = [
+        'report', 'assignment', 'essay', 'exam', 'test', 'quiz',
+        'paragraph', 'thesis', 'research', 'project', 'presentation',
+        'submission', 'submit', 'dissertation', 'paper', 'homework',
+        'lab', 'case study', 'viva', 'study', 'revision', 'midterm',
+        'final exam', 'group project'
+    ]
+
+    moderate_keywords = [
+        'meeting', 'class', 'lecture', 'reading', 'review',
+        'practice', 'tutorial', 'workshop', 'seminar', 'discussion'
+    ]
+
+    routine_keywords = [
+        'walk', 'dog', 'grocery', 'shopping', 'clean', 'laundry',
+        'cook', 'gym', 'workout', 'sleep', 'relax', 'watch',
+        'movie', 'game', 'hangout', 'call', 'chat', 'errand',
+        'dishes', 'organize', 'tidy'
+    ]
+
+    for word in academic_keywords:
+        if word in title_lower:
+            return 25
+
+    for word in moderate_keywords:
+        if word in title_lower:
+            return 12
+
+    for word in routine_keywords:
+        if word in title_lower:
+            return 0
+
+    return 8
+
+
+def auto_assign_priority(title, due_date, start_time, end_time):
     """
     Automatically assigns High, Medium or Low priority
-    based on deadline and task duration — no user input needed.
+    based on the task's keyword type AND the deadline.
+    No user input needed for any of it.
     """
+    type_weight = classify_task_type(title)
+
     if not due_date:
+        if type_weight >= 25:
+            return 'Medium'
         return 'Low'
 
     hours_left = (due_date - now_npt()).total_seconds() / 3600
     duration = calculate_duration_minutes(start_time, end_time)
 
-    # Overdue or due very soon
+    urgency_points = 0
     if hours_left < 0:
-        return 'High'
-
-    # Due within 24 hours
+        urgency_points = 50
     elif hours_left <= 24:
-        return 'High'
-
-    # Due within 3 days AND task takes more than 1 hour
-    elif hours_left <= 72 and duration > 60:
-        return 'High'
-
-    # Due within 3 days but short task
+        urgency_points = 40
     elif hours_left <= 72:
-        return 'Medium'
-
-    # Due within a week
+        urgency_points = 25
     elif hours_left <= 168:
-        return 'Medium'
+        urgency_points = 10
+    else:
+        urgency_points = 0
 
-    # Due later than a week
+    duration_points = 10 if duration > 60 else 0
+
+    total_points = type_weight + urgency_points + duration_points
+
+    if total_points >= 45:
+        return 'High'
+    elif total_points >= 20:
+        return 'Medium'
     else:
         return 'Low'
 
@@ -55,6 +101,9 @@ def score(task):
     # --- FACTOR 1: Auto assigned priority weight ---
     priority_weight = {'High': 30, 'Medium': 20, 'Low': 10}
     p = priority_weight.get(task.priority, 10)
+
+    # --- FACTOR 1B: Task type weight (keyword detection) ---
+    type_weight = classify_task_type(task.title)
 
     # --- FACTOR 2: Urgency based on exact hours left ---
     urgency = 0
@@ -84,7 +133,7 @@ def score(task):
     days_old = (now_npt() - task.created_at).days
     age_bonus = min(days_old, 10)
 
-    return p + urgency + duration_bonus + age_bonus
+    return p + type_weight + urgency + duration_bonus + age_bonus
 
 
 def prioritize_tasks(tasks):
