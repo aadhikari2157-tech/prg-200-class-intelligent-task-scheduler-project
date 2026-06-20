@@ -145,25 +145,49 @@ def settings():
 @login_required
 def add_task():
     data = request.get_json()
-    start = data.get('start_time', '')
-    end = data.get('end_time', '')
-    deadline_time = data.get('deadline_time', '')
 
-    # Combine due date + deadline time into one datetime
+    title = data.get('title', '').strip()
+    start = data.get('start_time', '').strip()
+    end = data.get('end_time', '').strip()
+    deadline_time = data.get('deadline_time', '').strip()
+    due_date_str = data.get('due_date', '').strip()
+
     due = None
-    if data.get('due_date'):
-        date_str = data['due_date']
+    if due_date_str:
         if deadline_time:
-            # Combine date and time e.g. 2026-06-16 21:00
-            due = datetime.strptime(f"{date_str} {deadline_time}", '%Y-%m-%d %H:%M')
+            due = datetime.strptime(f"{due_date_str} {deadline_time}", '%Y-%m-%d %H:%M')
         else:
-            due = datetime.strptime(date_str, '%Y-%m-%d')
+            due = datetime.strptime(due_date_str, '%Y-%m-%d')
 
-    # System automatically assigns priority based on deadline
-    auto_priority = auto_assign_priority(due, start, end)
+    # ───── DUPLICATE TASK CHECK ─────
+    existing_tasks = Task.query.filter_by(user_id=current_user.id, status='Pending').all()
+
+    new_due_str = due.strftime('%Y-%m-%d %H:%M') if due else ''
+
+    print("=== DUPLICATE CHECK DEBUG ===")
+    print(f"New task -> due: '{new_due_str}', start: '{start}', end: '{end}'")
+
+    for t in existing_tasks:
+        existing_due_str = t.due_date.strftime('%Y-%m-%d %H:%M') if t.due_date else ''
+        existing_start = (t.start_time or '').strip()
+        existing_end = (t.end_time or '').strip()
+
+        print(f"Existing task '{t.title}' -> due: '{existing_due_str}', start: '{existing_start}', end: '{existing_end}'")
+
+        if existing_due_str == new_due_str and existing_start == start and existing_end == end:
+            print("DUPLICATE FOUND - BLOCKING")
+            return jsonify({
+                'success': False,
+                'error': 'duplicate',
+                'message': f'Duplicate task not accepted. "{t.title}" already has the same deadline and work time.'
+            }), 400
+
+    print("No duplicate found - proceeding to create task")
+
+    auto_priority = auto_assign_priority(title, due, start, end)
 
     task = Task(
-        title=data['title'],
+        title=title,
         priority=auto_priority,
         status='Pending',
         due_date=due,
