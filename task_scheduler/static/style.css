@@ -978,6 +978,20 @@ nav {
 }
 
 /* ─────────────────────────────────────
+   DUPLICATE TASK WARNING
+───────────────────────────────────── */
+
+.duplicate-warning {
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  border: 1px solid #fecaca;
+}
+/* ─────────────────────────────────────
    SCROLLBAR
 ───────────────────────────────────── */
 
