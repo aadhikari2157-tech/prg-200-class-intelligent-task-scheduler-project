@@ -141,7 +141,6 @@ def settings():
     return render_template('settings.html')
 
 # ───────────── TASK API ─────────────
-
 @main.route('/task/add', methods=['POST'])
 @login_required
 def add_task():

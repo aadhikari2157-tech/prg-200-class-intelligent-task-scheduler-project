@@ -2,8 +2,18 @@ function openAddModal() {
   document.getElementById('add-modal').style.display = 'flex';
 }
 
+
 function closeModal() {
   document.getElementById('add-modal').style.display = 'none';
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-deadline-time').value = '';
+  document.getElementById('task-start').value = '';
+  document.getElementById('task-end').value = '';
+  isSubmitting = false;
+
+  const warningEl = document.getElementById('duplicate-warning');
+  if (warningEl) warningEl.remove();
 }
 
 let isSubmitting = false;
@@ -45,19 +55,35 @@ async function submitTask() {
       body: JSON.stringify(data)
     });
     const result = await res.json();
+
     if (result.success) {
       closeModal();
       location.reload();
+    } else if (result.error === 'duplicate') {
+      showDuplicateWarning(result.message);
     }
   } catch (err) {
     console.error('Error adding task:', err);
   } finally {
     isSubmitting = false;
     if (btn) {
+      S
       btn.textContent = 'Add Task';
       btn.disabled = false;
     }
   }
+}
+function showDuplicateWarning(message) {
+  let warningEl = document.getElementById('duplicate-warning');
+  if (!warningEl) {
+    warningEl = document.createElement('div');
+    warningEl.id = 'duplicate-warning';
+    warningEl.className = 'duplicate-warning';
+    const modalBody = document.querySelector('.modal-body');
+    modalBody.insertBefore(warningEl, modalBody.firstChild);
+  }
+  warningEl.textContent = '⚠️ ' + message;
+  warningEl.style.display = 'block';
 }
 
 document.addEventListener('click', (e) => {
