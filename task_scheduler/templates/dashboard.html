@@ -17,8 +17,7 @@
         {% elif hours_left < 24 %}
           <span class="urgent-tag">🔥 Due in {{ hours_left }}h</span>
         {% else %}
-          📅 Due {{ next_task.due_date.strftime('%b %d') }}
-          {% if next_task.deadline_time %} at {{ next_task.deadline_time|to12hr }}{% endif %}
+          📅 Due {{ next_task.due_date.strftime('%b %d') }}{% if next_task.deadline_time %} at {{ next_task.deadline_time|to12hr }}{% endif %}
         {% endif %}
       {% endif %}
     </span>
@@ -97,9 +96,6 @@
           <div class="task-meta">
             {% if task.start_time %}⏰ {{ task.start_time|to12hr }} - {{ task.end_time|to12hr }}  {% endif %}
             {% if task.due_date %}📅 Due {{ task.due_date.strftime('%b %d') }}{% if task.deadline_time %} at {{ task.deadline_time|to12hr }}{% endif %}{% endif %}
-            📅 Due {{ task.due_date.strftime('%b %d') }}
-            {% if task.deadline_time %} at {{ task.deadline_time }}{% endif %}
-          {% endif %}
           </div>
         </div>
         <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
@@ -115,10 +111,10 @@
     <div class="card-header">
       <h2>✅ Done Tasks</h2>
     </div>
-        <div class="task-item done">
+    {% for task in done_tasks[:6] %}
+    <div class="task-item done" id="task-{{ task.id }}">
       <span class="done-check">✅</span>
-      <{% for task in done_tasks[:6] %}
-div class="task-info">
+      <div class="task-info">
         <div class="task-title">{{ task.title }}</div>
         <div class="task-meta">
           {% if task.start_time %}⏰ {{ task.start_time|to12hr }} - {{ task.end_time|to12hr }}  {% endif %}
@@ -126,6 +122,7 @@ div class="task-info">
         </div>
       </div>
       <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
+      <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
     </div>
     {% else %}
     <p class="empty-state">No completed tasks yet</p>
