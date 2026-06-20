@@ -1,11 +1,14 @@
+import os
 from flask import Flask
 from flask_login import LoginManager
 from models import db, User
 from routes import main, auth
 
 app = Flask(__name__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
 app.config['SECRET_KEY'] = 'taskassigner-secret-2025'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///tasks.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'tasks.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
@@ -38,4 +41,3 @@ if __name__ == '__main__':
         db.create_all()
         print("Database tables created.")
     app.run(debug=True)
-
