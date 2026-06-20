@@ -115,21 +115,20 @@
       <h2>✅ Done Tasks</h2>
     </div>
     {% for task in done_tasks[:6] %}
-    <div class="task-item done">
+    <div class="task-item done" id="task-{{ task.id }}">
       <span class="done-check">✅</span>
       <div class="task-info">
         <div class="task-title">{{ task.title }}</div>
         <div class="task-meta">
-          {% if task.start_time %}⏰ {{ task.start_time }}–{{ task.end_time }}  {% endif %}
+          {% if task.start_time %}⏰ {{ task.start_time }}-{{ task.end_time }}  {% endif %}
           {% if task.completed_at %}📅 Done on {{ task.completed_at.strftime('%m/%d/%Y') }}{% endif %}
         </div>
       </div>
       <span class="badge badge-{{ task.priority.lower() }}">{{ task.priority }} — Auto</span>
+      <button class="btn-delete" onclick="deleteTask({{ task.id }})">✕</button>
     </div>
     {% else %}
     <p class="empty-state">No completed tasks yet</p>
     {% endfor %}
-  </div>
-</div>
 
 {% endblock %}
