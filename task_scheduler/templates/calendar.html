@@ -34,7 +34,18 @@
 
 {% block scripts %}
 <script>
-const allTasks = {{ tasks | tojson | safe }};
+constallTasks = {{ tasks | tojson | safe }};
+
+constallTasks = {{ tasks | tojson | safe }};
+
+function to12hr(timeStr) {
+  if (!timeStr) return '';
+  const [h, m] = timeStr.split(':');
+  let hour = parseInt(h);
+  const ampm = hour >= 12 ? 'PM' : 'AM';
+  hour = hour % 12 || 12;
+  return `${hour}:${m} ${ampm}`;
+}
 const taskMap = {};
 allTasks.forEach(t => {
   if (t.due_date) {
@@ -100,9 +111,7 @@ function showDay(dateStr, day) {
     <div class="task-item">
       <div class="task-info">
         <div class="task-title">${t.title}</div>
-        <div class="task-meta">
-          ${t.start_time ? '⏰ '+t.start_time+'–'+t.end_time : ''} 📅 Due today
-        </div>
+        <div class="task-meta">${t.start_time ? '⏰ '+to12hr(t.start_time)+' - '+to12hr(t.end_time) : ''} 📅 Due today</div>
       </div>
       <span class="badge badge-${colors[t.priority]||'medium'}">${t.priority}</span>
     </div>`).join('');

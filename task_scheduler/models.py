@@ -1,6 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-from datetime import datetime
+from datetime import datetime, timedelta
+
+NPT_OFFSET = timedelta(hours=5, minutes=45)
+
+def now_npt():
+    """Returns the current time adjusted to Nepal Standard Time"""
+    return datetime.utcnow() + NPT_OFFSET
 
 db = SQLAlchemy()
 
@@ -21,7 +27,7 @@ class Task(db.Model):
     deadline_time = db.Column(db.String(10), default='')
     start_time = db.Column(db.String(10), default='')
     end_time = db.Column(db.String(10), default='')
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=now_npt)
     completed_at = db.Column(db.DateTime, nullable=True)
     is_recurring = db.Column(db.Boolean, default=False)
     recur_type = db.Column(db.String(20), default='')
@@ -33,4 +39,4 @@ class Notification(db.Model):
     message = db.Column(db.String(300), nullable=False)
     task_id = db.Column(db.Integer, db.ForeignKey('task.id'), nullable=True)
     is_read = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=now_npt)

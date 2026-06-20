@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import datetime
+from scheduler import now_npt
 from models import db, User, Task, Notification
 from scheduler import (
     prioritize_tasks, get_todays_tasks, get_overdue_tasks,
@@ -95,7 +96,7 @@ def dashboard():
         completed=completed,
         in_progress=in_progress,
         overdue=overdue,
-        now=datetime.utcnow()
+        now=now_npt()
     )
 
 @main.route('/calendar')
@@ -205,7 +206,7 @@ def add_task():
 def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.status = 'Done'
-    task.completed_at = datetime.utcnow()
+    task.completed_at = now_npt()
     db.session.commit()
     return jsonify({'success': True})
 
@@ -237,7 +238,7 @@ def tasks_json():
 # ───────────── NOTIFICATIONS ─────────────
 
 def generate_notifications(user_id, tasks):
-    now = datetime.utcnow()
+    now = now_npt()
     for task in tasks:
         if task.status == 'Done':
             continue

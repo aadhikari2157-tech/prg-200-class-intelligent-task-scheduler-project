@@ -1,4 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta
+
+NPT_OFFSET = timedelta(hours=5, minutes=45)
+
+def now_npt():
+    """Returns the current time adjusted to Nepal Standard Time"""
+    return datetime.utcnow() + NPT_OFFSET
 
 def calculate_duration_minutes(start_time, end_time):
     try:
@@ -17,7 +23,7 @@ def auto_assign_priority(due_date, start_time, end_time):
     if not due_date:
         return 'Low'
 
-    hours_left = (due_date - datetime.utcnow()).total_seconds() / 3600
+    hours_left = (due_date - now_npt()).total_seconds() / 3600
     duration = calculate_duration_minutes(start_time, end_time)
 
     # Overdue or due very soon
@@ -53,7 +59,7 @@ def score(task):
     # --- FACTOR 2: Urgency based on exact hours left ---
     urgency = 0
     if task.due_date:
-        hours_left = (task.due_date - datetime.utcnow()).total_seconds() / 3600
+        hours_left = (task.due_date - now_npt()).total_seconds() / 3600
         if hours_left < 0:
             urgency = 50
         elif hours_left < 24:
@@ -75,7 +81,7 @@ def score(task):
         duration_bonus = 0
 
     # --- FACTOR 4: Age bonus ---
-    days_old = (datetime.utcnow() - task.created_at).days
+    days_old = (now_npt() - task.created_at).days
     age_bonus = min(days_old, 10)
 
     return p + urgency + duration_bonus + age_bonus
@@ -93,13 +99,13 @@ def prioritize_tasks(tasks):
 
 
 def get_todays_tasks(tasks):
-    today = datetime.utcnow().date()
+    today = now_npt().date()
     pending = [t for t in tasks if t.status != 'Done']
     return [t for t in pending if t.due_date and t.due_date.date() == today]
 
 
 def get_overdue_tasks(tasks):
-    now = datetime.utcnow()
+    now = now_npt()
     return [
         t for t in tasks
         if t.status != 'Done' and t.due_date and t.due_date < now

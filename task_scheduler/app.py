@@ -18,6 +18,18 @@ login_manager.init_app(app)
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+@app.template_filter('to12hr')
+def to12hr_filter(time_str):
+    """Converts 24-hour time string like '18:00' to 12-hour format like '6:00 PM'"""
+    if not time_str:
+        return ''
+    try:
+        from datetime import datetime as dt
+        time_obj = dt.strptime(time_str, '%H:%M')
+        return time_obj.strftime('%I:%M %p').lstrip('0')
+    except:
+        return time_str
+
 app.register_blueprint(main)
 app.register_blueprint(auth)
 
