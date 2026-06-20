@@ -2,8 +2,18 @@ function openAddModal() {
   document.getElementById('add-modal').style.display = 'flex';
 }
 
+
 function closeModal() {
   document.getElementById('add-modal').style.display = 'none';
+  document.getElementById('task-title').value = '';
+  document.getElementById('task-due').value = '';
+  document.getElementById('task-deadline-time').value = '';
+  document.getElementById('task-start').value = '';
+  document.getElementById('task-end').value = '';
+  isSubmitting = false;
+
+  const warningEl = document.getElementById('duplicate-warning');
+  if (warningEl) warningEl.remove();
 }
 
 let isSubmitting = false;
