@@ -34,9 +34,7 @@
 
 {% block scripts %}
 <script>
-constallTasks = {{ tasks | tojson | safe }};
-
-constallTasks = {{ tasks | tojson | safe }};
+const allTasks = {{ tasks | tojson | safe }};
 
 function to12hr(timeStr) {
   if (!timeStr) return '';
@@ -46,6 +44,7 @@ function to12hr(timeStr) {
   hour = hour % 12 || 12;
   return `${hour}:${m} ${ampm}`;
 }
+
 const taskMap = {};
 allTasks.forEach(t => {
   if (t.due_date) {
